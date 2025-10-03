@@ -11,7 +11,7 @@ export default function Home() {
             Job Tracking App
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
-            Streamline your team's workflow with powerful task management
+            Streamline your team&apos;s workflow with powerful task management
           </p>
           <div className="flex gap-4 justify-center">
             <Link
