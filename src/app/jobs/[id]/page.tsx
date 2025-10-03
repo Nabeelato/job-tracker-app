@@ -33,6 +33,8 @@ import {
   canCompleteJob,
   canCancelJob,
 } from "@/lib/permissions";
+import CommentInput from "@/components/comment-input";
+import CommentsList from "@/components/comments-list";
 
 interface Job {
   id: string;
@@ -113,8 +115,6 @@ export default function JobDetailPage() {
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [comment, setComment] = useState("");
-  const [submittingComment, setSubmittingComment] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [deletingJob, setDeletingJob] = useState(false);
   
@@ -204,33 +204,6 @@ export default function JobDetailPage() {
       setError(error.message || "An error occurred");
     } finally {
       setUpdatingStatus(false);
-    }
-  };
-
-  const handleSubmitComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!comment.trim()) return;
-
-    setSubmittingComment(true);
-    try {
-      const response = await fetch(`/api/jobs/${jobId}/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ content: comment }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add comment");
-      }
-
-      setComment("");
-      await fetchJob();
-    } catch (error: any) {
-      setError(error.message || "An error occurred");
-    } finally {
-      setSubmittingComment(false);
     }
   };
 
@@ -590,74 +563,25 @@ export default function JobDetailPage() {
 
             {/* Comments */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                 <MessageSquare className="w-5 h-5" />
                 Comments ({job.comments.length})
               </h2>
 
-              {/* Comment List */}
-              <div className="space-y-4 mb-6">
-                {job.comments.length === 0 ? (
-                  <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                    No comments yet. Be the first to comment!
-                  </p>
-                ) : (
-                  job.comments.map((comment) => (
-                    <div
-                      key={comment.id}
-                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900 dark:text-white">
-                            {comment.user.name}
-                          </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
-                            {comment.user.role}
-                          </span>
-                        </div>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          {formatTimeAgo(new Date(comment.createdAt))}
-                        </span>
-                      </div>
-                      <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
-                        {comment.content}
-                      </p>
-                    </div>
-                  ))
-                )}
+              {/* Comment List with enhanced mention rendering */}
+              <div className="mb-6">
+                <CommentsList 
+                  comments={job.comments} 
+                  currentUserId={session?.user?.id}
+                />
               </div>
 
-              {/* Add Comment Form */}
+              {/* Add Comment Form with @mention autocomplete */}
               {canComment && (
-                <form onSubmit={handleSubmitComment} className="space-y-3">
-                  <textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Add a comment..."
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none"
-                  />
-                  <div className="flex justify-end">
-                    <button
-                      type="submit"
-                      disabled={submittingComment || !comment.trim()}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      {submittingComment ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Posting...
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          Post Comment
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
+                <CommentInput 
+                  jobId={jobId} 
+                  onCommentAdded={fetchJob}
+                />
               )}
             </div>
           </div>
