@@ -39,7 +39,7 @@ export default function NewJobPage() {
     jobId: "",
     clientName: "",
     title: "",
-    managerId: "",
+    managerId: "", // For ADMIN to select manager
     supervisorId: "",
     startedAt: "",
     priority: "NORMAL",
@@ -81,13 +81,23 @@ export default function NewJobPage() {
     setError("");
 
     try {
-      // Send form data - backend will automatically use current user as manager
+      // Prepare payload based on user role
+      const payload: any = {
+        ...formData
+      };
+
+      // If user is ADMIN, they can specify managerId
+      // If user is MANAGER/SUPERVISOR, backend will use their ID as manager
+      if (session?.user.role !== 'ADMIN') {
+        delete payload.managerId; // Let backend set it automatically
+      }
+
       const response = await fetch("/api/jobs", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -189,6 +199,31 @@ export default function NewJobPage() {
               placeholder="e.g., Update employee database"
             />
           </div>
+
+          {/* Manager Selection - Only for ADMIN */}
+          {session?.user.role === 'ADMIN' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Assign To Manager *
+              </label>
+              <select
+                required
+                value={formData.managerId}
+                onChange={(e) => setFormData({ ...formData, managerId: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              >
+                <option value="">Select manager</option>
+                {users.filter(u => u.role === 'MANAGER').map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name} - {user.email}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                Select which manager should oversee this job
+              </p>
+            </div>
+          )}
 
           {/* Supervisor */}
           <div>

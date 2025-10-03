@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log("Received job creation data:", body); // Debug logging
     console.log("Database user ID:", dbUser.id); // Debug logging
+    console.log("User role:", session.user.role); // Debug logging
     
     const {
       jobId,
@@ -152,10 +153,38 @@ export async function POST(request: NextRequest) {
       startedAt,
       priority,
       serviceTypes,
+      managerId: requestedManagerId, // Only ADMIN can specify this
     } = body
 
-    // Use the database user's ID as managerId (ignore any managerId from request)
-    const managerId = dbUser.id;
+    // Determine the manager ID based on user role
+    let managerId: string;
+    
+    if (session.user.role === 'ADMIN') {
+      // ADMIN can specify which manager to assign
+      if (!requestedManagerId) {
+        return NextResponse.json(
+          { error: "Admin must select a manager for the job" },
+          { status: 400 }
+        )
+      }
+      
+      // Verify the requested manager exists and has MANAGER role
+      const manager = await prisma.user.findUnique({
+        where: { id: requestedManagerId },
+      })
+      
+      if (!manager || manager.role !== "MANAGER") {
+        return NextResponse.json(
+          { error: "Invalid manager ID. Must be a user with MANAGER role" },
+          { status: 400 }
+        )
+      }
+      
+      managerId = requestedManagerId;
+    } else {
+      // MANAGER/SUPERVISOR: use their own ID as manager
+      managerId = dbUser.id;
+    }
 
     // Validation - check for required fields (handle empty strings as missing)
     const missingFields = [];

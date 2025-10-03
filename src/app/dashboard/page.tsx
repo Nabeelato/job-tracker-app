@@ -9,6 +9,9 @@ export default async function DashboardPage() {
     redirect("/auth/login")
   }
 
+  // Redirect to jobs page - dashboard is not needed
+  redirect("/jobs")
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
