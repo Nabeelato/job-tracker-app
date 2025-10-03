@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { extractMentions, createNotification } from "@/lib/notifications"
 
 export async function POST(
   request: NextRequest,
@@ -36,11 +37,15 @@ export async function POST(
       )
     }
 
+    // Extract @mentions from content
+    const mentions = extractMentions(content)
+
     const comment = await prisma.comment.create({
       data: {
         content,
         jobId: params.id,
         userId: dbUser.id,
+        mentions: mentions,
       },
       include: {
         user: {
@@ -77,24 +82,38 @@ export async function POST(
       },
     })
 
-    // Notify all related users (except the commenter)
+    // Notify mentioned users
+    for (const mentionedUserId of mentions) {
+      if (mentionedUserId !== dbUser.id) {
+        await createNotification({
+          userId: mentionedUserId,
+          type: "COMMENT_MENTION",
+          title: "You were mentioned in a comment",
+          content: `${dbUser.name} mentioned you in "${job?.title}": ${content.substring(0, 100)}`,
+          jobId: params.id,
+          commentId: comment.id,
+          actionUrl: `/jobs/${params.id}`,
+        })
+      }
+    }
+
+    // Notify other job team members (who weren't mentioned)
     const notifyUserIds = [
       job?.assignedToId,
       job?.assignedById,
       job?.supervisorId,
       job?.managerId,
     ]
-      .filter(id => id && id !== dbUser.id)
+      .filter(id => id && id !== dbUser.id && !mentions.includes(id))
 
     for (const userId of notifyUserIds) {
-      await prisma.notification.create({
-        data: {
-          userId: userId!,
-          type: "COMMENT_ADDED",
-          title: "New comment on job",
-          content: `${dbUser.name} commented on "${job?.title}"`,
-          jobId: params.id,
-        },
+      await createNotification({
+        userId: userId!,
+        type: "COMMENT_ADDED",
+        title: "New comment on job",
+        content: `${dbUser.name} commented on "${job?.title}"`,
+        jobId: params.id,
+        actionUrl: `/jobs/${params.id}`,
       })
     }
 

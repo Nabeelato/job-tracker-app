@@ -19,6 +19,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import NotificationsDropdown from "./notifications-dropdown";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -116,8 +117,11 @@ export default function Navbar() {
               })}
           </div>
 
-          {/* Right Side: Theme Toggle + User Profile */}
+          {/* Right Side: Notifications + Theme Toggle + User Profile */}
           <div className="flex items-center gap-3">
+            {/* Notifications */}
+            <NotificationsDropdown />
+
             {/* Theme Toggle */}
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

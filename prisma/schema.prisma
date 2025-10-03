@@ -92,6 +92,7 @@ model Job {
   supervisorId String?
   departmentId String?
   serviceTypes ServiceType[]
+  progress     Int         @default(0) // Progress percentage 0-100
   startedAt    DateTime?
   dueDate      DateTime?
   completedAt  DateTime?
@@ -119,13 +120,14 @@ model Job {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  content   String   @db.Text
-  jobId     String
-  userId    String
-  isEdited  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  content     String   @db.Text
+  jobId       String
+  userId      String
+  mentions    String[] // Array of user IDs mentioned in comment
+  isEdited    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id])
@@ -141,6 +143,7 @@ model StatusUpdate {
   action    String
   oldValue  String?
   newValue  String?
+  comment   String?  @db.Text // Optional comment explaining the change
   timestamp DateTime @default(now())
 
   job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
@@ -165,17 +168,20 @@ model Attachment {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  type      String
-  title     String
-  content   String   @db.Text
-  jobId     String?
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  userId     String
+  type       String   // JOB_ASSIGNED, COMMENT_MENTION, STATUS_CHANGE, DUE_DATE_REMINDER, etc.
+  title      String
+  content    String   @db.Text
+  jobId      String?
+  commentId  String?  // For mention notifications
+  actionUrl  String?  // Deep link to relevant page
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([isRead])
+  @@index([createdAt])
 }
