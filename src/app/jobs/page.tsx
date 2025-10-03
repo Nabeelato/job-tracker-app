@@ -43,9 +43,11 @@ interface Job {
     role: string;
   };
   manager?: {
+    id: string;
     name: string;
   } | null;
   supervisor?: {
+    id: string;
     name: string;
   } | null;
   department?: {
@@ -150,16 +152,19 @@ export default function JobsPage() {
   const [serviceTypeFilter, setServiceTypeFilter] = useState<string>("ALL");
   const [priorityFilter, setPriorityFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [userFilter, setUserFilter] = useState<string>("ALL"); // NEW: User filter
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
 
   // For supervisors assigning staff
   const [assigningStaff, setAssigningStaff] = useState<string | null>(null);
   const [staffUsers, setStaffUsers] = useState<any[]>([]);
   const [selectedStaff, setSelectedStaff] = useState("");
+  const [allUsers, setAllUsers] = useState<any[]>([]); // NEW: All users for filter
 
   useEffect(() => {
     if (session) {
       fetchJobs();
+      fetchAllUsers(); // NEW: Fetch all users for filter
       if (session.user.role === "SUPERVISOR") {
         fetchStaffUsers();
       }
@@ -193,6 +198,18 @@ export default function JobsPage() {
       }
     } catch (error) {
       console.error("Error fetching staff:", error);
+    }
+  };
+
+  const fetchAllUsers = async () => {
+    try {
+      const response = await fetch("/api/users");
+      if (response.ok) {
+        const data = await response.json();
+        setAllUsers(data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
     }
   };
 
@@ -316,7 +333,30 @@ export default function JobsPage() {
     const matchesStatus =
       statusFilter === "ALL" || job.status === statusFilter;
 
-    return matchesSearch && matchesServiceType && matchesPriority && matchesStatus;
+    // NEW: User filter with role-based logic
+    const matchesUser = userFilter === "ALL" || (() => {
+      const selectedUser = allUsers.find(u => u.id === userFilter);
+      if (!selectedUser) return true;
+
+      // Filter based on the selected user's role
+      switch (selectedUser.role) {
+        case "STAFF":
+          return job.assignedTo?.id === userFilter;
+        case "SUPERVISOR":
+          return job.supervisor?.id === userFilter;
+        case "MANAGER":
+          return job.manager?.id === userFilter;
+        case "ADMIN":
+          // Admin can be manager, supervisor, or assigned
+          return job.manager?.id === userFilter || 
+                 job.supervisor?.id === userFilter || 
+                 job.assignedTo?.id === userFilter;
+        default:
+          return true;
+      }
+    })();
+
+    return matchesSearch && matchesServiceType && matchesPriority && matchesStatus && matchesUser;
   });
 
   if (loading) {
@@ -403,8 +443,22 @@ export default function JobsPage() {
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
+            {(searchTerm || serviceTypeFilter !== "ALL" || priorityFilter !== "ALL" || statusFilter !== "ALL" || userFilter !== "ALL") && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setServiceTypeFilter("ALL");
+                  setPriorityFilter("ALL");
+                  setStatusFilter("ALL");
+                  setUserFilter("ALL");
+                }}
+                className="ml-auto text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Clear all filters
+              </button>
+            )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Search */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -474,6 +528,64 @@ export default function JobsPage() {
                 <option value="ON_HOLD">04: Missing Info/Chase Info</option>
                 <option value="AWAITING_APPROVAL">05: Info Completed</option>
               </select>
+            </div>
+
+            {/* User Filter - NEW */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <User className="w-4 h-4 inline mr-1" />
+                Filter by User
+              </label>
+              <select
+                value={userFilter}
+                onChange={(e) => setUserFilter(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="ALL">All Users</option>
+                {session?.user && (
+                  <option value={session.user.id} className="font-bold">
+                    🔵 My Jobs
+                  </option>
+                )}
+                <optgroup label="Staff">
+                  {allUsers.filter(u => u.role === 'STAFF').map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} {user.department && `(${user.department.name})`}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Supervisors">
+                  {allUsers.filter(u => u.role === 'SUPERVISOR').map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} {user.department && `(${user.department.name})`}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Managers">
+                  {allUsers.filter(u => u.role === 'MANAGER').map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} {user.department && `(${user.department.name})`}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Admins">
+                  {allUsers.filter(u => u.role === 'ADMIN').map(user => (
+                    <option key={user.id} value={user.id}>
+                      {user.name}
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+              {userFilter !== "ALL" && (() => {
+                const selectedUser = allUsers.find(u => u.id === userFilter);
+                return selectedUser ? (
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Showing jobs {selectedUser.role === 'STAFF' ? 'assigned to' : 
+                                selectedUser.role === 'SUPERVISOR' ? 'supervised by' : 
+                                'managed by'} {selectedUser.name}
+                  </p>
+                ) : null;
+              })()}
             </div>
           </div>
         </div>
@@ -563,13 +675,43 @@ export default function JobsPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                        {job.manager?.name || "N/A"}
+                        {job.manager?.name ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUserFilter(job.manager!.id);
+                            }}
+                            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                          >
+                            {job.manager.name}
+                          </button>
+                        ) : "N/A"}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                        {job.supervisor?.name || "N/A"}
+                        {job.supervisor?.name ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUserFilter(job.supervisor!.id);
+                            }}
+                            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                          >
+                            {job.supervisor.name}
+                          </button>
+                        ) : "N/A"}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                        {job.assignedTo?.name || "Unassigned"}
+                        {job.assignedTo?.name ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setUserFilter(job.assignedTo!.id);
+                            }}
+                            className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                          >
+                            {job.assignedTo.name}
+                          </button>
+                        ) : "Unassigned"}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                         {job.startedAt ? new Date(job.startedAt).toLocaleDateString() : "Not started"}
