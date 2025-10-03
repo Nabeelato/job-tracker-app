@@ -167,6 +167,13 @@ export default function JobsPage() {
   const [allUsers, setAllUsers] = useState<any[]>([]); // NEW: All users for filter
   const [departments, setDepartments] = useState<any[]>([]); // NEW: Departments for filter
 
+  // Bulk actions
+  const [selectedJobs, setSelectedJobs] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<string>("");
+  const [bulkActionValue, setBulkActionValue] = useState<string>("");
+  const [showBulkActionModal, setShowBulkActionModal] = useState(false);
+  const [performingBulkAction, setPerformingBulkAction] = useState(false);
+
   useEffect(() => {
     if (session) {
       fetchJobs();
@@ -407,6 +414,78 @@ export default function JobsPage() {
     return matchesSearch && matchesServiceType && matchesPriority && matchesStatus && 
            matchesUser && matchesDepartment && matchesOverdue && matchesDateRange;
   });
+
+  // Bulk action handlers
+  const toggleSelectAll = () => {
+    if (selectedJobs.size === filteredJobs.length) {
+      setSelectedJobs(new Set());
+    } else {
+      setSelectedJobs(new Set(filteredJobs.map((j) => j.id)));
+    }
+  };
+
+  const toggleSelectJob = (jobId: string) => {
+    const newSelected = new Set(selectedJobs);
+    if (newSelected.has(jobId)) {
+      newSelected.delete(jobId);
+    } else {
+      newSelected.add(jobId);
+    }
+    setSelectedJobs(newSelected);
+  };
+
+  const handleBulkAction = async () => {
+    if (!bulkAction || selectedJobs.size === 0) return;
+
+    setPerformingBulkAction(true);
+    try {
+      const updates = Array.from(selectedJobs).map(async (jobId) => {
+        let updateData: any = {};
+
+        switch (bulkAction) {
+          case "status":
+            updateData = { status: bulkActionValue };
+            break;
+          case "priority":
+            updateData = { priority: bulkActionValue };
+            break;
+          case "archive":
+            updateData = { status: "CANCELLED" };
+            break;
+          default:
+            return;
+        }
+
+        const response = await fetch(`/api/jobs/${jobId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updateData),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to update job ${jobId}`);
+        }
+      });
+
+      await Promise.all(updates);
+      
+      // Refresh jobs list
+      await fetchJobs();
+      
+      // Reset selection and modal
+      setSelectedJobs(new Set());
+      setBulkAction("");
+      setBulkActionValue("");
+      setShowBulkActionModal(false);
+      
+      alert(`Successfully updated ${selectedJobs.size} job(s)`);
+    } catch (error) {
+      console.error("Error performing bulk action:", error);
+      alert("Failed to perform bulk action. Some jobs may not have been updated.");
+    } finally {
+      setPerformingBulkAction(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -698,6 +777,131 @@ export default function JobsPage() {
           </div>
         </div>
 
+        {/* Bulk Actions Bar */}
+        {selectedJobs.size > 0 && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-3">
+                <span className="text-blue-900 dark:text-blue-100 font-medium">
+                  {selectedJobs.size} job{selectedJobs.size !== 1 ? "s" : ""} selected
+                </span>
+                <button
+                  onClick={() => setSelectedJobs(new Set())}
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Clear selection
+                </button>
+              </div>
+              <div className="flex items-center gap-3">
+                <select
+                  value={bulkAction}
+                  onChange={(e) => {
+                    setBulkAction(e.target.value);
+                    if (e.target.value === "archive") {
+                      setShowBulkActionModal(true);
+                    } else {
+                      setBulkActionValue("");
+                    }
+                  }}
+                  className="px-4 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Action</option>
+                  <option value="status">Change Status</option>
+                  <option value="priority">Change Priority</option>
+                  <option value="archive">Archive Jobs</option>
+                </select>
+
+                {bulkAction === "status" && (
+                  <select
+                    value={bulkActionValue}
+                    onChange={(e) => setBulkActionValue(e.target.value)}
+                    className="px-4 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Status</option>
+                    <option value="PENDING">02: RFI</option>
+                    <option value="IN_PROGRESS">03: Info Sent to Lahore</option>
+                    <option value="ON_HOLD">04: Missing Info/Chase Info</option>
+                    <option value="AWAITING_APPROVAL">05: Info Completed</option>
+                  </select>
+                )}
+
+                {bulkAction === "priority" && (
+                  <select
+                    value={bulkActionValue}
+                    onChange={(e) => setBulkActionValue(e.target.value)}
+                    className="px-4 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select Priority</option>
+                    <option value="URGENT">Urgent</option>
+                    <option value="HIGH">High</option>
+                    <option value="NORMAL">Normal</option>
+                    <option value="LOW">Low</option>
+                  </select>
+                )}
+
+                <button
+                  onClick={() => setShowBulkActionModal(true)}
+                  disabled={!bulkAction || (bulkAction !== "archive" && !bulkActionValue)}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bulk Action Confirmation Modal */}
+        {showBulkActionModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                Confirm Bulk Action
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Are you sure you want to {bulkAction === "archive" ? "archive" : "update"}{" "}
+                {selectedJobs.size} job{selectedJobs.size !== 1 ? "s" : ""}?
+                {bulkAction === "status" && bulkActionValue && (
+                  <span className="block mt-2 font-medium">
+                    New status: {bulkActionValue === "PENDING" ? "02: RFI" :
+                                 bulkActionValue === "IN_PROGRESS" ? "03: Info Sent to Lahore" :
+                                 bulkActionValue === "ON_HOLD" ? "04: Missing Info/Chase Info" :
+                                 "05: Info Completed"}
+                  </span>
+                )}
+                {bulkAction === "priority" && bulkActionValue && (
+                  <span className="block mt-2 font-medium">
+                    New priority: {bulkActionValue}
+                  </span>
+                )}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowBulkActionModal(false)}
+                  disabled={performingBulkAction}
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkAction}
+                  disabled={performingBulkAction}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {performingBulkAction ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Confirm"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Excel-Style Table with Accordion */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
           {filteredJobs.length === 0 ? (
@@ -708,6 +912,14 @@ export default function JobsPage() {
             <table className="w-full">
               <thead className="bg-gray-100 dark:bg-gray-700 border-b-2 border-gray-300 dark:border-gray-600">
                 <tr>
+                  <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      checked={selectedJobs.size === filteredJobs.length && filteredJobs.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                  </th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Job ID
                   </th>
@@ -757,6 +969,17 @@ export default function JobsPage() {
                       onClick={() => toggleExpand(job.id)}
                       className="hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer transition-colors"
                     >
+                      <td 
+                        className="px-4 py-3 text-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedJobs.has(job.id)}
+                          onChange={() => toggleSelectJob(job.id)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                      </td>
                       <td className="px-4 py-3 text-sm font-mono font-medium text-gray-900 dark:text-white">
                         {job.jobId}
                       </td>
@@ -868,7 +1091,7 @@ export default function JobsPage() {
                     {/* Expanded Content Row - Timeline & Actions */}
                     {expandedJobId === job.id && (
                       <tr>
-                        <td colSpan={13} className="px-0 py-0">
+                        <td colSpan={14} className="px-0 py-0">
                           <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-750">
                             {/* Actions */}
                             <div className="mb-4 flex gap-2 flex-wrap">

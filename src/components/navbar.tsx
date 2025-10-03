@@ -17,6 +17,7 @@ import {
   Moon,
   Sun,
   FileSpreadsheet,
+  LayoutDashboard,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import NotificationsDropdown from "./notifications-dropdown";
@@ -42,6 +43,12 @@ export default function Navbar() {
   };
 
   const navLinks = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      show: true,
+    },
     {
       name: "Jobs",
       href: "/jobs",
