@@ -29,13 +29,20 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create user (admin can specify role and status, otherwise use defaults)
+    // Check if this is the first user (make them admin automatically)
+    const userCount = await prisma.user.count()
+    const isFirstUser = userCount === 0
+    
+    // First user is always ADMIN, otherwise use provided role or default to STAFF
+    const userRole = isFirstUser ? "ADMIN" : (role || "STAFF")
+
+    // Create user
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
-        role: role || "STAFF",
+        role: userRole,
         isActive: isActive !== undefined ? isActive : true,
         departmentId: departmentId || null,
       },
