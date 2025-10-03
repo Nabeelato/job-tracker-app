@@ -20,6 +20,8 @@ import {
   Grid3X3,
   Table2,
   Building2,
+  Calendar,
+  AlertCircle,
 } from "lucide-react";
 import { canCreateJobs } from "@/lib/permissions";
 import { formatTimeAgo } from "@/lib/utils";
@@ -153,6 +155,9 @@ export default function JobsPage() {
   const [priorityFilter, setPriorityFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [userFilter, setUserFilter] = useState<string>("ALL"); // NEW: User filter
+  const [departmentFilter, setDepartmentFilter] = useState<string>("ALL"); // NEW: Department filter
+  const [dateRangeFilter, setDateRangeFilter] = useState<string>("ALL"); // NEW: Date range
+  const [overdueFilter, setOverdueFilter] = useState<boolean>(false); // NEW: Overdue filter
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
 
   // For supervisors assigning staff
@@ -160,11 +165,13 @@ export default function JobsPage() {
   const [staffUsers, setStaffUsers] = useState<any[]>([]);
   const [selectedStaff, setSelectedStaff] = useState("");
   const [allUsers, setAllUsers] = useState<any[]>([]); // NEW: All users for filter
+  const [departments, setDepartments] = useState<any[]>([]); // NEW: Departments for filter
 
   useEffect(() => {
     if (session) {
       fetchJobs();
       fetchAllUsers(); // NEW: Fetch all users for filter
+      fetchDepartments(); // NEW: Fetch departments
       if (session.user.role === "SUPERVISOR") {
         fetchStaffUsers();
       }
@@ -210,6 +217,18 @@ export default function JobsPage() {
       }
     } catch (error) {
       console.error("Error fetching users:", error);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch("/api/departments");
+      if (response.ok) {
+        const data = await response.json();
+        setDepartments(data);
+      }
+    } catch (error) {
+      console.error("Error fetching departments:", error);
     }
   };
 
@@ -333,7 +352,7 @@ export default function JobsPage() {
     const matchesStatus =
       statusFilter === "ALL" || job.status === statusFilter;
 
-    // NEW: User filter with role-based logic
+    // User filter with role-based logic
     const matchesUser = userFilter === "ALL" || (() => {
       const selectedUser = allUsers.find(u => u.id === userFilter);
       if (!selectedUser) return true;
@@ -356,7 +375,37 @@ export default function JobsPage() {
       }
     })();
 
-    return matchesSearch && matchesServiceType && matchesPriority && matchesStatus && matchesUser;
+    // NEW: Department filter
+    const matchesDepartment =
+      departmentFilter === "ALL" || job.department?.id === departmentFilter;
+
+    // NEW: Overdue filter
+    const isOverdue = job.dueDate && new Date(job.dueDate) < new Date() && job.status !== "COMPLETED";
+    const matchesOverdue = !overdueFilter || isOverdue;
+
+    // NEW: Date range filter
+    const matchesDateRange = dateRangeFilter === "ALL" || (() => {
+      if (!job.dueDate) return false;
+      const dueDate = new Date(job.dueDate);
+      const today = new Date();
+      const daysDiff = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+      switch (dateRangeFilter) {
+        case "TODAY":
+          return daysDiff === 0;
+        case "THIS_WEEK":
+          return daysDiff >= 0 && daysDiff <= 7;
+        case "THIS_MONTH":
+          return daysDiff >= 0 && daysDiff <= 30;
+        case "OVERDUE":
+          return daysDiff < 0;
+        default:
+          return true;
+      }
+    })();
+
+    return matchesSearch && matchesServiceType && matchesPriority && matchesStatus && 
+           matchesUser && matchesDepartment && matchesOverdue && matchesDateRange;
   });
 
   if (loading) {
@@ -443,7 +492,7 @@ export default function JobsPage() {
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
-            {(searchTerm || serviceTypeFilter !== "ALL" || priorityFilter !== "ALL" || statusFilter !== "ALL" || userFilter !== "ALL") && (
+            {(searchTerm || serviceTypeFilter !== "ALL" || priorityFilter !== "ALL" || statusFilter !== "ALL" || userFilter !== "ALL" || departmentFilter !== "ALL" || dateRangeFilter !== "ALL" || overdueFilter) && (
               <button
                 onClick={() => {
                   setSearchTerm("");
@@ -451,6 +500,9 @@ export default function JobsPage() {
                   setPriorityFilter("ALL");
                   setStatusFilter("ALL");
                   setUserFilter("ALL");
+                  setDepartmentFilter("ALL");
+                  setDateRangeFilter("ALL");
+                  setOverdueFilter(false);
                 }}
                 className="ml-auto text-sm text-blue-600 dark:text-blue-400 hover:underline"
               >
@@ -458,7 +510,7 @@ export default function JobsPage() {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {/* Search */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -587,6 +639,62 @@ export default function JobsPage() {
                 ) : null;
               })()}
             </div>
+
+            {/* Department Filter - NEW */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <Building2 className="w-4 h-4 inline mr-1" />
+                Department
+              </label>
+              <select
+                value={departmentFilter}
+                onChange={(e) => setDepartmentFilter(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="ALL">All Departments</option>
+                {departments.map(dept => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Date Range Filter - NEW */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <Calendar className="w-4 h-4 inline mr-1" />
+                Due Date Range
+              </label>
+              <select
+                value={dateRangeFilter}
+                onChange={(e) => setDateRangeFilter(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="ALL">All Dates</option>
+                <option value="TODAY">Due Today</option>
+                <option value="THIS_WEEK">Due This Week</option>
+                <option value="THIS_MONTH">Due This Month</option>
+                <option value="OVERDUE">Overdue</option>
+              </select>
+            </div>
+
+            {/* Overdue Only Toggle - NEW */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <AlertCircle className="w-4 h-4 inline mr-1" />
+                Show Only
+              </label>
+              <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750">
+                <input
+                  type="checkbox"
+                  checked={overdueFilter}
+                  onChange={(e) => setOverdueFilter(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-offset-gray-800"
+                />
+                <span className="text-gray-900 dark:text-white">Overdue Jobs</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -629,6 +737,9 @@ export default function JobsPage() {
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     Job Started
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                    Due Date
                   </th>
                   <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                     <MessageSquare className="w-4 h-4 inline" />
@@ -716,6 +827,32 @@ export default function JobsPage() {
                       <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                         {job.startedAt ? new Date(job.startedAt).toLocaleDateString() : "Not started"}
                       </td>
+                      <td className="px-4 py-3 text-sm">
+                        {job.dueDate ? (() => {
+                          const dueDate = new Date(job.dueDate);
+                          const today = new Date();
+                          const isOverdue = dueDate < today && job.status !== "COMPLETED";
+                          const daysDiff = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                          
+                          return (
+                            <div className={`${isOverdue ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-900 dark:text-white'}`}>
+                              <div>{dueDate.toLocaleDateString()}</div>
+                              {isOverdue && (
+                                <div className="text-xs text-red-500">
+                                  Overdue by {Math.abs(daysDiff)} {Math.abs(daysDiff) === 1 ? 'day' : 'days'}
+                                </div>
+                              )}
+                              {!isOverdue && daysDiff >= 0 && daysDiff <= 7 && (
+                                <div className="text-xs text-orange-500 dark:text-orange-400">
+                                  {daysDiff === 0 ? 'Due today' : `${daysDiff} ${daysDiff === 1 ? 'day' : 'days'} left`}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })() : (
+                          <span className="text-gray-400 dark:text-gray-500">No due date</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-sm text-center text-gray-600 dark:text-gray-400">
                         {job._count.comments}
                       </td>
@@ -731,7 +868,7 @@ export default function JobsPage() {
                     {/* Expanded Content Row - Timeline & Actions */}
                     {expandedJobId === job.id && (
                       <tr>
-                        <td colSpan={12} className="px-0 py-0">
+                        <td colSpan={13} className="px-0 py-0">
                           <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-750">
                             {/* Actions */}
                             <div className="mb-4 flex gap-2 flex-wrap">
@@ -1007,6 +1144,39 @@ export default function JobsPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Due Date */}
+                    {job.dueDate && (
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        {(() => {
+                          const dueDate = new Date(job.dueDate);
+                          const today = new Date();
+                          const isOverdue = dueDate < today && job.status !== "COMPLETED";
+                          const daysDiff = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                          
+                          return (
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="w-4 h-4 text-gray-400" />
+                              <div>
+                                <span className={`${isOverdue ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-gray-600 dark:text-gray-300'}`}>
+                                  Due: {dueDate.toLocaleDateString()}
+                                </span>
+                                {isOverdue && (
+                                  <span className="ml-2 text-xs text-red-500">
+                                    (Overdue by {Math.abs(daysDiff)} {Math.abs(daysDiff) === 1 ? 'day' : 'days'})
+                                  </span>
+                                )}
+                                {!isOverdue && daysDiff >= 0 && daysDiff <= 7 && (
+                                  <span className="ml-2 text-xs text-orange-500 dark:text-orange-400">
+                                    ({daysDiff === 0 ? 'Due today' : `${daysDiff} ${daysDiff === 1 ? 'day' : 'days'} left`})
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    )}
 
                     {/* Comments Count */}
                     {job._count && job._count.comments > 0 && (

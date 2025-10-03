@@ -42,6 +42,7 @@ export default function NewJobPage() {
     managerId: "", // For ADMIN to select manager
     supervisorId: "",
     startedAt: "",
+    dueDate: "", // NEW: Due date field
     priority: "NORMAL",
     serviceTypes: [] as string[],
   });
@@ -261,6 +262,24 @@ export default function NewJobPage() {
             />
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               When did work on this job begin? (Optional)
+            </p>
+          </div>
+
+          {/* Due Date - NEW */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Due Date *
+            </label>
+            <input
+              type="date"
+              required
+              value={formData.dueDate}
+              onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            />
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              When should this job be completed?
             </p>
           </div>
 

@@ -151,6 +151,7 @@ export async function POST(request: NextRequest) {
       title,
       supervisorId,
       startedAt,
+      dueDate, // NEW: Due date
       priority,
       serviceTypes,
       managerId: requestedManagerId, // Only ADMIN can specify this
@@ -229,6 +230,8 @@ export async function POST(request: NextRequest) {
           set: serviceTypes || [],
         },
         priority: priority || "NORMAL",
+        startedAt: startedAt ? new Date(startedAt) : null,
+        dueDate: dueDate ? new Date(dueDate) : null, // NEW: Add due date
       },
       include: {
         assignedTo: {
