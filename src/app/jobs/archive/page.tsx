@@ -27,6 +27,7 @@ interface Job {
   priority: string;
   completedAt: string | null;
   createdAt: string;
+  startedAt?: string | null;
   assignedTo?: {
     id: string;
     name: string;
@@ -86,11 +87,11 @@ export default function ArchivePage() {
     return monthKey === monthFilter;
   });
 
-  // Get available months for filter
-  const availableMonths = getAvailableMonths(jobs, 'createdAt');
+  // Get available months for filter based on start date
+  const availableMonths = getAvailableMonths(jobs, 'startedAt');
 
-  // Group jobs by month for monthly view
-  const jobsByMonth = groupByMonth(filteredJobs, 'createdAt');
+  // Group jobs by month for monthly view based on start date
+  const jobsByMonth = groupByMonth(filteredJobs, 'startedAt');
 
   // Auto-expand first month
   if (viewMode === "monthly" && jobsByMonth.size > 0 && expandedMonths.size === 0) {

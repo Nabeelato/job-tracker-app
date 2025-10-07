@@ -426,8 +426,8 @@ export default function JobsPage() {
            matchesUser && matchesDepartment && matchesOverdue && matchesDateRange && matchesMonth;
   });
 
-  // Get available months for filter dropdown
-  const availableMonths = getAvailableMonths(jobs, 'createdAt');
+  // Get available months for filter dropdown based on start date
+  const availableMonths = getAvailableMonths(jobs, 'startedAt');
 
   // Bulk action handlers
   const toggleSelectAll = () => {

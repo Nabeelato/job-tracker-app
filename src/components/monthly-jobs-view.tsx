@@ -141,8 +141,8 @@ export default function MonthlyJobsView({
 }: MonthlyJobsViewProps) {
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set());
 
-  // Group jobs by month
-  const jobsByMonth = groupByMonth(jobs, "createdAt");
+  // Group jobs by month based on start date
+  const jobsByMonth = groupByMonth(jobs, "startedAt");
 
   const toggleMonth = (monthKey: string) => {
     const newExpanded = new Set(expandedMonths);
