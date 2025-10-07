@@ -22,9 +22,12 @@ import {
   Building2,
   Calendar,
   AlertCircle,
+  List,
 } from "lucide-react";
 import { canCreateJobs } from "@/lib/permissions";
 import { formatTimeAgo } from "@/lib/utils";
+import { getAvailableMonths } from "@/lib/date-utils";
+import MonthlyJobsView from "@/components/monthly-jobs-view";
 
 type ServiceType = "BOOKKEEPING" | "VAT" | "AUDIT" | "FINANCIAL_STATEMENTS";
 
@@ -158,7 +161,8 @@ export default function JobsPage() {
   const [departmentFilter, setDepartmentFilter] = useState<string>("ALL"); // NEW: Department filter
   const [dateRangeFilter, setDateRangeFilter] = useState<string>("ALL"); // NEW: Date range
   const [overdueFilter, setOverdueFilter] = useState<boolean>(false); // NEW: Overdue filter
-  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+  const [monthFilter, setMonthFilter] = useState<string>("ALL"); // NEW: Month filter
+  const [viewMode, setViewMode] = useState<"table" | "grid" | "monthly">("monthly"); // Add monthly view
 
   // For supervisors assigning staff
   const [assigningStaff, setAssigningStaff] = useState<string | null>(null);
@@ -411,9 +415,19 @@ export default function JobsPage() {
       }
     })();
 
+    // NEW: Month filter (filters by creation month)
+    const matchesMonth = monthFilter === "ALL" || (() => {
+      const createdDate = new Date(job.createdAt);
+      const monthKey = `${createdDate.getFullYear()}-${String(createdDate.getMonth() + 1).padStart(2, '0')}`;
+      return monthKey === monthFilter;
+    })();
+
     return matchesSearch && matchesServiceType && matchesPriority && matchesStatus && 
-           matchesUser && matchesDepartment && matchesOverdue && matchesDateRange;
+           matchesUser && matchesDepartment && matchesOverdue && matchesDateRange && matchesMonth;
   });
+
+  // Get available months for filter dropdown
+  const availableMonths = getAvailableMonths(jobs, 'createdAt');
 
   // Bulk action handlers
   const toggleSelectAll = () => {
@@ -511,12 +525,24 @@ export default function JobsPage() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm">
               <button
+                onClick={() => setViewMode("monthly")}
+                className={`p-2 rounded transition-colors ${
+                  viewMode === "monthly"
+                    ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                    : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                }`}
+                title="Monthly View"
+              >
+                <List className="w-5 h-5" />
+              </button>
+              <button
                 onClick={() => setViewMode("table")}
                 className={`p-2 rounded transition-colors ${
                   viewMode === "table"
                     ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                     : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                 }`}
+                title="Table View"
               >
                 <Table2 className="w-5 h-5" />
               </button>
@@ -527,6 +553,7 @@ export default function JobsPage() {
                     ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                     : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                 }`}
+                title="Grid View"
               >
                 <Grid3X3 className="w-5 h-5" />
               </button>
@@ -571,7 +598,7 @@ export default function JobsPage() {
           <div className="flex items-center gap-2 mb-4">
             <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
-            {(searchTerm || serviceTypeFilter !== "ALL" || priorityFilter !== "ALL" || statusFilter !== "ALL" || userFilter !== "ALL" || departmentFilter !== "ALL" || dateRangeFilter !== "ALL" || overdueFilter) && (
+            {(searchTerm || serviceTypeFilter !== "ALL" || priorityFilter !== "ALL" || statusFilter !== "ALL" || userFilter !== "ALL" || departmentFilter !== "ALL" || dateRangeFilter !== "ALL" || monthFilter !== "ALL" || overdueFilter) && (
               <button
                 onClick={() => {
                   setSearchTerm("");
@@ -581,6 +608,7 @@ export default function JobsPage() {
                   setUserFilter("ALL");
                   setDepartmentFilter("ALL");
                   setDateRangeFilter("ALL");
+                  setMonthFilter("ALL");
                   setOverdueFilter(false);
                 }}
                 className="ml-auto text-sm text-blue-600 dark:text-blue-400 hover:underline"
@@ -758,6 +786,26 @@ export default function JobsPage() {
               </select>
             </div>
 
+            {/* Month Filter - NEW */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <Calendar className="w-4 h-4 inline mr-1" />
+                Filter by Month
+              </label>
+              <select
+                value={monthFilter}
+                onChange={(e) => setMonthFilter(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="ALL">All Months</option>
+                {availableMonths.map(({ key, label, count }) => (
+                  <option key={key} value={key}>
+                    {label} ({count})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Overdue Only Toggle - NEW */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -902,13 +950,28 @@ export default function JobsPage() {
           </div>
         )}
 
-        {/* Excel-Style Table with Accordion */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-          {filteredJobs.length === 0 ? (
+        {/* Jobs Display - Monthly/Table/Grid Views */}
+        {filteredJobs.length === 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               {jobs.length === 0 ? "No jobs found" : "No jobs match your filters"}
             </div>
-          ) : viewMode === "table" ? (
+          </div>
+        ) : viewMode === "monthly" ? (
+          <MonthlyJobsView
+            jobs={filteredJobs}
+            onJobClick={toggleExpand}
+            expandedJobId={expandedJobId}
+            timeline={timeline}
+            loadingTimeline={loadingTimeline}
+            selectedJobs={selectedJobs}
+            onToggleSelectJob={toggleSelectJob}
+            showCheckboxes={true}
+            onUserFilter={setUserFilter}
+          />
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+            {viewMode === "table" ? (
             <table className="w-full">
               <thead className="bg-gray-100 dark:bg-gray-700 border-b-2 border-gray-300 dark:border-gray-600">
                 <tr>
@@ -1524,7 +1587,8 @@ export default function JobsPage() {
               ))}
             </div>
           )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
