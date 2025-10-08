@@ -67,11 +67,11 @@ export async function POST(
         completedAt: new Date(),
       },
       include: {
-        assignedTo: true,
-        assignedBy: true,
-        manager: true,
-        supervisor: true,
-        department: true,
+        User_Job_assignedToIdToUser: true,
+        User_Job_assignedByIdToUser: true,
+        User_Job_managerIdToUser: true,
+        User_Job_supervisorIdToUser: true,
+        Department: true,
       },
     })
 

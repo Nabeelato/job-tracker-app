@@ -19,7 +19,7 @@ export async function GET(
     const job = await prisma.job.findUnique({
       where: { id: params.id },
       include: {
-        assignedTo: {
+        User_Job_assignedToIdToUser: {
           select: {
             id: true,
             name: true,
@@ -28,17 +28,17 @@ export async function GET(
             role: true,
           },
         },
-        assignedBy: {
+        User_Job_assignedByIdToUser: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        department: true,
+        Department: true,
         comments: {
           include: {
-            user: {
+            User: {
               select: {
                 id: true,
                 name: true,
@@ -53,7 +53,7 @@ export async function GET(
         },
         statusUpdates: {
           include: {
-            user: {
+            User: {
               select: {
                 id: true,
                 name: true,
@@ -123,9 +123,9 @@ export async function PATCH(
     const existingJob = await prisma.job.findUnique({
       where: { id: params.id },
       include: {
-        assignedTo: true,
-        manager: true,
-        supervisor: true,
+        User_Job_assignedToIdToUser: true,
+        User_Job_managerIdToUser: true,
+        User_Job_supervisorIdToUser: true,
       },
     })
 
@@ -207,9 +207,9 @@ export async function PATCH(
       where: { id: params.id },
       data: updateData,
       include: {
-        assignedTo: true,
-        assignedBy: true,
-        department: true,
+        User_Job_assignedToIdToUser: true,
+        User_Job_assignedByIdToUser: true,
+        Department: true,
       },
     })
 

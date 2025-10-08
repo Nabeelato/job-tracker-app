@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         },
       },
       include: {
-        assignedTo: {
+        User_Job_assignedToIdToUser: {
           select: {
             id: true,
             name: true,
@@ -43,14 +43,14 @@ export async function GET(request: NextRequest) {
             role: true,
           },
         },
-        supervisor: {
+        User_Job_supervisorIdToUser: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        manager: {
+        User_Job_managerIdToUser: {
           select: {
             id: true,
             name: true,
@@ -81,6 +81,7 @@ export async function GET(request: NextRequest) {
         if (job.assignedToId) {
           await prisma.notification.create({
             data: {
+              id: crypto.randomUUID(),
               userId: job.assignedToId,
               type: "JOB_INACTIVE_24H",
               title: "Job has been inactive for 24 hours",
@@ -122,6 +123,7 @@ export async function GET(request: NextRequest) {
         for (const userId of Array.from(userIdsToNotify)) {
           await prisma.notification.create({
             data: {
+              id: crypto.randomUUID(),
               userId,
               type: "JOB_INACTIVE_48H",
               title: "URGENT: Job inactive for 48 hours",

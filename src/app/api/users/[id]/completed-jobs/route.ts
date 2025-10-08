@@ -26,12 +26,12 @@ export async function GET(
         status: "COMPLETED",
       },
       include: {
-        assignedBy: {
+        User_Job_assignedByIdToUser: {
           select: {
             name: true,
           },
         },
-        department: {
+        Department_User_departmentIdToDepartment: {
           select: {
             name: true,
           },

@@ -19,13 +19,13 @@ export async function GET(req: NextRequest) {
         },
       },
       include: {
-        manager: true,
-        supervisor: true,
-        assignedTo: true,
-        department: true,
+        User_Job_managerIdToUser: true,
+        User_Job_supervisorIdToUser: true,
+        User_Job_assignedToIdToUser: true,
+        Department: true,
         _count: {
           select: {
-            comments: true,
+            Comment: true,
           },
         },
       },

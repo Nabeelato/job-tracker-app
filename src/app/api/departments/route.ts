@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
         id: true,
         name: true,
         managerId: true,
-        manager: {
+        User_Department_managerIdToUser: {
           select: {
             id: true,
             name: true,
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         },
         _count: {
           select: {
-            users: true,
+            User_User_departmentIdToDepartment: true,
             jobs: true,
           },
         },
@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         managerId,
       },
       include: {
-        manager: {
+        User_Department_managerIdToUser: {
           select: {
             id: true,
             name: true,

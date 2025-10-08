@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
           role: true,
           isActive: true,
           createdAt: true,
-          department: {
+          Department_User_departmentIdToDepartment: {
             select: {
               id: true,
               name: true,

@@ -33,9 +33,9 @@ export async function POST(
     const job = await prisma.job.findUnique({
       where: { id: jobId },
       include: {
-        assignedTo: true,
-        supervisor: true,
-        manager: true,
+        User_Job_assignedToIdToUser: true,
+        User_Job_supervisorIdToUser: true,
+        User_Job_managerIdToUser: true,
       },
     })
 

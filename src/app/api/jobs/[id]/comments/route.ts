@@ -49,7 +49,7 @@ export async function POST(
         mentions: mentions,
       },
       include: {
-        user: {
+        User: {
           select: {
             id: true,
             name: true,

@@ -37,9 +37,9 @@ export async function PATCH(
     const job = await prisma.job.findUnique({
       where: { id: params.id },
       include: {
-        assignedTo: true,
-        manager: true,
-        supervisor: true,
+        User_Job_assignedToIdToUser: true,
+        User_Job_managerIdToUser: true,
+        User_Job_supervisorIdToUser: true,
       },
     })
 

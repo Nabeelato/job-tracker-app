@@ -41,9 +41,9 @@ export async function POST(
     const job = await prisma.job.findUnique({
       where: { id: jobId },
       include: {
-        assignedTo: true,
-        supervisor: true,
-        manager: true,
+        User_Job_assignedToIdToUser: true,
+        User_Job_supervisorIdToUser: true,
+        User_Job_managerIdToUser: true,
       },
     })
 
@@ -88,7 +88,7 @@ export async function POST(
         assignedToId: staffId,
       },
       include: {
-        assignedTo: {
+        User_Job_assignedToIdToUser: {
           select: {
             id: true,
             name: true,
@@ -96,14 +96,14 @@ export async function POST(
             role: true,
           },
         },
-        supervisor: {
+        User_Job_supervisorIdToUser: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        manager: {
+        User_Job_managerIdToUser: {
           select: {
             id: true,
             name: true,

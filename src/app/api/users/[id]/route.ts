@@ -24,7 +24,7 @@ export async function GET(
         role: true,
         isActive: true,
         createdAt: true,
-        department: {
+        Department_User_departmentIdToDepartment: {
           select: {
             id: true,
             name: true,
@@ -98,7 +98,7 @@ export async function PATCH(
         role: true,
         isActive: true,
         createdAt: true,
-        department: {
+        Department_User_departmentIdToDepartment: {
           select: {
             id: true,
             name: true,

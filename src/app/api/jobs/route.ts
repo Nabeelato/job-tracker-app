@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     const jobs = await prisma.job.findMany({
       where,
       include: {
-        assignedTo: {
+        User_Job_assignedToIdToUser: {
           select: {
             id: true,
             name: true,
@@ -50,28 +50,28 @@ export async function GET(request: NextRequest) {
             avatar: true,
           },
         },
-        assignedBy: {
+        User_Job_assignedByIdToUser: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        manager: {
+        User_Job_managerIdToUser: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        supervisor: {
+        User_Job_supervisorIdToUser: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        department: {
+        Department_User_departmentIdToDepartment: {
           select: {
             id: true,
             name: true,
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
         },
         _count: {
           select: {
-            comments: true,
+            Comment: true,
           },
         },
       },
@@ -235,35 +235,35 @@ export async function POST(request: NextRequest) {
         dueDate: dueDate ? new Date(dueDate) : null, // NEW: Add due date
       },
       include: {
-        assignedTo: {
+        User_Job_assignedToIdToUser: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        assignedBy: {
+        User_Job_assignedByIdToUser: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        manager: {
+        User_Job_managerIdToUser: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        supervisor: {
+        User_Job_supervisorIdToUser: {
           select: {
             id: true,
             name: true,
             email: true,
           },
         },
-        department: true,
+        Department: true,
       },
     })
 

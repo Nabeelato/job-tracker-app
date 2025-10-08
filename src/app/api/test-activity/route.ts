@@ -31,7 +31,7 @@ export async function GET() {
       take: 5,
       orderBy: { createdAt: "desc" },
       include: {
-        user: { select: { name: true } },
+        User: { select: { name: true } },
         job: { select: { jobId: true, clientName: true } },
       },
     });

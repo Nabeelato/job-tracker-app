@@ -22,7 +22,7 @@ export async function GET(
         jobId,
       },
       include: {
-        user: {
+        User: {
           select: {
             id: true,
             name: true,
