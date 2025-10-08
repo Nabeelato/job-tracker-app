@@ -1,0 +1,19 @@
+# Netlify Configuration
+[build]
+  command = "npx prisma generate && npx prisma migrate deploy && npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Redirect all server requests to Next.js
+[[redirects]]
+  from = "/*"
+  to = "/.netlify/functions/nextServer/:splat"
+  status = 200
+
+# Environment variables (set these in Netlify dashboard)
+# DATABASE_URL
+# NEXTAUTH_SECRET
+# NEXTAUTH_URL
+# CRON_SECRET (optional)
