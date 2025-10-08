@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { canCreateJobs } from "@/lib/permissions"
+import { logJobCreated, logJobAssigned } from "@/lib/activity"
 
 export async function GET(request: NextRequest) {
   try {
@@ -275,6 +276,10 @@ export async function POST(request: NextRequest) {
         newValue: "PENDING",
       },
     })
+
+    // Log activity
+    await logJobCreated(job.id, managerId, clientName)
+    await logJobAssigned(job.id, managerId, supervisor.name || "Supervisor", supervisorId)
 
     // Create notification for supervisor
     await prisma.notification.create({

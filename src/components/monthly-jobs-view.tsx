@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { groupByMonth, getMonthLabelFromKey } from "@/lib/date-utils";
 import { formatTimeAgo } from "@/lib/utils";
+import { getActivityStatus } from "@/lib/business-hours";
 
 type ServiceType = "BOOKKEEPING" | "VAT" | "AUDIT" | "FINANCIAL_STATEMENTS";
 
@@ -30,6 +31,8 @@ interface Job {
   serviceTypes: ServiceType[];
   dueDate: string;
   startedAt?: string | null;
+  lastActivityAt?: string | null;
+  reminderSnoozeUntil?: string | null;
   assignedTo?: {
     id: string;
     name: string;
@@ -126,6 +129,30 @@ const getStatusColor = (status: string) => {
     CANCELLED: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
   };
   return colors[status] || "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300";
+};
+
+// Get activity status indicator color for job row
+const getActivityRowColor = (job: Job): string => {
+  // Only show indicators for active jobs (not completed or cancelled)
+  if (job.status === "COMPLETED" || job.status === "CANCELLED") {
+    return "hover:bg-gray-50 dark:hover:bg-gray-750";
+  }
+
+  const lastActivityDate = job.lastActivityAt ? new Date(job.lastActivityAt) : null;
+  const snoozeUntil = job.reminderSnoozeUntil ? new Date(job.reminderSnoozeUntil) : null;
+  
+  const activityStatus = getActivityStatus(lastActivityDate, snoozeUntil);
+  
+  if (activityStatus === "critical") {
+    return "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 border-l-4 border-l-red-500";
+  } else if (activityStatus === "warning") {
+    return "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30 border-l-4 border-l-yellow-500";
+  } else if (activityStatus === "active") {
+    return "bg-green-50 hover:bg-green-100 dark:bg-green-950/20 dark:hover:bg-green-950/30 border-l-4 border-l-green-500";
+  }
+  
+  // Snoozed (no indicator)
+  return "hover:bg-gray-50 dark:hover:bg-gray-750";
 };
 
 export default function MonthlyJobsView({
@@ -268,7 +295,7 @@ export default function MonthlyJobsView({
                         {/* Main Row */}
                         <tr
                           onClick={() => onJobClick(job.id)}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer transition-colors"
+                          className={`cursor-pointer transition-colors ${getActivityRowColor(job)}`}
                         >
                           {showCheckboxes && (
                             <td 

@@ -27,6 +27,7 @@ import {
 import { canCreateJobs } from "@/lib/permissions";
 import { formatTimeAgo } from "@/lib/utils";
 import { getAvailableMonths } from "@/lib/date-utils";
+import { getActivityStatus } from "@/lib/business-hours";
 import MonthlyJobsView from "@/components/monthly-jobs-view";
 
 type ServiceType = "BOOKKEEPING" | "VAT" | "AUDIT" | "FINANCIAL_STATEMENTS";
@@ -42,6 +43,8 @@ interface Job {
   serviceTypes: ServiceType[];
   dueDate: string;
   startedAt?: string | null;
+  lastActivityAt?: string | null;
+  reminderSnoozeUntil?: string | null;
   assignedTo?: {
     id: string;
     name: string;
@@ -341,6 +344,30 @@ export default function JobsPage() {
       CANCELLED: "bg-gray-100 text-gray-800",
     };
     return colors[status] || "bg-gray-100 text-gray-800";
+  };
+
+  // Get activity status indicator color for job row
+  const getActivityRowColor = (job: Job): string => {
+    // Only show indicators for active jobs (not completed or cancelled)
+    if (job.status === "COMPLETED" || job.status === "CANCELLED") {
+      return "";
+    }
+
+    const lastActivityDate = job.lastActivityAt ? new Date(job.lastActivityAt) : null;
+    const snoozeUntil = job.reminderSnoozeUntil ? new Date(job.reminderSnoozeUntil) : null;
+    
+    const activityStatus = getActivityStatus(lastActivityDate, snoozeUntil);
+    
+    if (activityStatus === "critical") {
+      return "bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 border-l-4 border-l-red-500";
+    } else if (activityStatus === "warning") {
+      return "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20 dark:hover:bg-yellow-950/30 border-l-4 border-l-yellow-500";
+    } else if (activityStatus === "active") {
+      return "bg-green-50 hover:bg-green-100 dark:bg-green-950/20 dark:hover:bg-green-950/30 border-l-4 border-l-green-500";
+    }
+    
+    // Snoozed (no indicator)
+    return "hover:bg-gray-50 dark:hover:bg-gray-750";
   };
 
   // Filter jobs based on search and filters
@@ -1030,7 +1057,7 @@ export default function JobsPage() {
                     {/* Main Row - Clickable */}
                     <tr
                       onClick={() => toggleExpand(job.id)}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer transition-colors"
+                      className={`cursor-pointer transition-colors ${getActivityRowColor(job)}`}
                     >
                       <td 
                         className="px-4 py-3 text-center"
@@ -1341,7 +1368,24 @@ export default function JobsPage() {
               {filteredJobs.map((job) => (
                 <div
                   key={job.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                  className={`bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer ${
+                    getActivityStatus(
+                      job.lastActivityAt ? new Date(job.lastActivityAt) : null,
+                      job.reminderSnoozeUntil ? new Date(job.reminderSnoozeUntil) : null
+                    ) === "critical" && job.status !== "COMPLETED" && job.status !== "CANCELLED"
+                      ? "border-l-4 border-l-red-500 bg-red-50 dark:bg-red-950/20"
+                      : getActivityStatus(
+                          job.lastActivityAt ? new Date(job.lastActivityAt) : null,
+                          job.reminderSnoozeUntil ? new Date(job.reminderSnoozeUntil) : null
+                        ) === "warning" && job.status !== "COMPLETED" && job.status !== "CANCELLED"
+                      ? "border-l-4 border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/20"
+                      : getActivityStatus(
+                          job.lastActivityAt ? new Date(job.lastActivityAt) : null,
+                          job.reminderSnoozeUntil ? new Date(job.reminderSnoozeUntil) : null
+                        ) === "active" && job.status !== "COMPLETED" && job.status !== "CANCELLED"
+                      ? "border-l-4 border-l-green-500 bg-green-50 dark:bg-green-950/20"
+                      : ""
+                  }`}
                   onClick={() => toggleExpand(job.id)}
                 >
                   <div className="p-6">

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { logJobAssigned, logJobReassigned } from "@/lib/activity"
 
 export async function POST(
   request: NextRequest,
@@ -122,6 +123,14 @@ export async function POST(
         newValue: staff.name,
       },
     })
+
+    // Log activity
+    const previousAssigneeName = job.assignedTo?.name || "Unassigned"
+    if (job.assignedToId) {
+      await logJobReassigned(job.id, dbUser.id, previousAssigneeName, staff.name || "Staff", staffId)
+    } else {
+      await logJobAssigned(job.id, dbUser.id, staff.name || "Staff", staffId)
+    }
 
     return NextResponse.json(updatedJob)
   } catch (error) {

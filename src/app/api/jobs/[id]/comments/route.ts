@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { extractMentions, createNotification } from "@/lib/notifications"
+import { logCommentAdded } from "@/lib/activity"
 
 export async function POST(
   request: NextRequest,
@@ -69,6 +70,9 @@ export async function POST(
         newValue: content.substring(0, 100), // Store first 100 chars as preview
       },
     })
+
+    // Log activity
+    await logCommentAdded(params.id, dbUser.id, dbUser.name || "User")
 
     // Get job details for notification
     const job = await prisma.job.findUnique({

@@ -7,11 +7,180 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  ADMIN
-  MANAGER
-  SUPERVISOR
-  STAFF
+model Activity {
+  id          String       @id
+  jobId       String
+  type        ActivityType
+  userId      String
+  description String
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+  Job         Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  User        User         @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([jobId])
+  @@index([type])
+}
+
+model Attachment {
+  id        String   @id
+  jobId     String
+  filename  String
+  url       String
+  fileType  String
+  fileSize  Int
+  createdAt DateTime @default(now())
+  Job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+}
+
+model Comment {
+  id        String   @id
+  content   String
+  jobId     String
+  userId    String
+  mentions  String[]
+  isEdited  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  Job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id])
+
+  @@index([jobId])
+  @@index([userId])
+}
+
+model Department {
+  id                                 String   @id
+  name                               String
+  managerId                          String?  @unique
+  createdAt                          DateTime @default(now())
+  updatedAt                          DateTime
+  User_Department_managerIdToUser    User?    @relation("Department_managerIdToUser", fields: [managerId], references: [id])
+  Job                                Job[]
+  User_User_departmentIdToDepartment User[]   @relation("User_departmentIdToDepartment")
+}
+
+model Job {
+  id                          String         @id
+  jobId                       String         @unique
+  clientName                  String
+  title                       String
+  description                 String?
+  status                      JobStatus      @default(PENDING)
+  priority                    Priority       @default(NORMAL)
+  isUrgent                    Boolean        @default(false)
+  isLate                      Boolean        @default(false)
+  assignedToId                String
+  assignedById                String
+  managerId                   String?
+  supervisorId                String?
+  departmentId                String?
+  serviceTypes                ServiceType[]
+  progress                    Int            @default(0)
+  startedAt                   DateTime?
+  dueDate                     DateTime?
+  completedAt                 DateTime?
+  tags                        String[]
+  createdAt                   DateTime       @default(now())
+  updatedAt                   DateTime
+  lastActivityAt              DateTime       @default(now())
+  lastReminderSentAt          DateTime?
+  reminderSnoozeUntil         DateTime?
+  Activity                    Activity[]
+  Attachment                  Attachment[]
+  Comment                     Comment[]
+  User_Job_assignedByIdToUser User           @relation("Job_assignedByIdToUser", fields: [assignedById], references: [id])
+  User_Job_assignedToIdToUser User           @relation("Job_assignedToIdToUser", fields: [assignedToId], references: [id])
+  Department                  Department?    @relation(fields: [departmentId], references: [id])
+  User_Job_managerIdToUser    User?          @relation("Job_managerIdToUser", fields: [managerId], references: [id])
+  User_Job_supervisorIdToUser User?          @relation("Job_supervisorIdToUser", fields: [supervisorId], references: [id])
+  StatusUpdate                StatusUpdate[]
+
+  @@index([assignedById])
+  @@index([assignedToId])
+  @@index([departmentId])
+  @@index([dueDate])
+  @@index([jobId])
+  @@index([lastActivityAt])
+  @@index([managerId])
+  @@index([status])
+  @@index([supervisorId])
+}
+
+model Notification {
+  id        String           @id
+  userId    String
+  type      NotificationType
+  title     String
+  content   String
+  jobId     String?
+  commentId String?
+  actionUrl String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  User      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([isRead])
+  @@index([userId])
+}
+
+model StatusUpdate {
+  id        String   @id
+  jobId     String
+  userId    String
+  action    String
+  oldValue  String?
+  newValue  String?
+  comment   String?
+  timestamp DateTime @default(now())
+  Job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id])
+
+  @@index([jobId])
+  @@index([userId])
+}
+
+model User {
+  id                                       String         @id
+  name                                     String
+  email                                    String         @unique
+  password                                 String
+  role                                     UserRole       @default(STAFF)
+  departmentId                             String?
+  isActive                                 Boolean        @default(true)
+  avatar                                   String?
+  createdAt                                DateTime       @default(now())
+  updatedAt                                DateTime
+  Activity                                 Activity[]
+  Comment                                  Comment[]
+  Department_Department_managerIdToUser    Department?    @relation("Department_managerIdToUser")
+  Job_Job_assignedByIdToUser               Job[]          @relation("Job_assignedByIdToUser")
+  Job_Job_assignedToIdToUser               Job[]          @relation("Job_assignedToIdToUser")
+  Job_Job_managerIdToUser                  Job[]          @relation("Job_managerIdToUser")
+  Job_Job_supervisorIdToUser               Job[]          @relation("Job_supervisorIdToUser")
+  Notification                             Notification[]
+  StatusUpdate                             StatusUpdate[]
+  Department_User_departmentIdToDepartment Department?    @relation("User_departmentIdToDepartment", fields: [departmentId], references: [id])
+
+  @@index([departmentId])
+  @@index([email])
+}
+
+enum ActivityType {
+  CREATED
+  ASSIGNED
+  REASSIGNED
+  STATUS_CHANGED
+  COMMENT_ADDED
+  FILE_UPLOADED
+  COMPLETED
+  CANCELLED
+  UPDATED
+  SNOOZED
 }
 
 enum JobStatus {
@@ -22,6 +191,18 @@ enum JobStatus {
   PENDING_COMPLETION
   COMPLETED
   CANCELLED
+}
+
+enum NotificationType {
+  JOB_ASSIGNED
+  JOB_REASSIGNED
+  JOB_COMMENT
+  JOB_STATUS_CHANGED
+  JOB_COMPLETED
+  JOB_OVERDUE
+  JOB_INACTIVE_24H
+  JOB_INACTIVE_48H
+  MENTION
 }
 
 enum Priority {
@@ -38,150 +219,9 @@ enum ServiceType {
   FINANCIAL_STATEMENTS
 }
 
-model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  password      String
-  role          UserRole  @default(STAFF)
-  departmentId  String?
-  isActive      Boolean   @default(true)
-  avatar        String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  department         Department?      @relation(fields: [departmentId], references: [id])
-  managedDepartment  Department?      @relation("DepartmentManager")
-  assignedJobs       Job[]            @relation("AssignedJobs")
-  createdJobs        Job[]            @relation("CreatedJobs")
-  managedJobs        Job[]            @relation("ManagedJobs")
-  supervisedJobs     Job[]            @relation("SupervisedJobs")
-  comments           Comment[]
-  statusUpdates      StatusUpdate[]
-  notifications      Notification[]
-
-  @@index([email])
-  @@index([departmentId])
-}
-
-model Department {
-  id        String   @id @default(cuid())
-  name      String
-  managerId String?  @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  manager   User?  @relation("DepartmentManager", fields: [managerId], references: [id])
-  users     User[]
-  jobs      Job[]
-}
-
-model Job {
-  id           String      @id @default(cuid())
-  jobId        String      @unique
-  clientName   String
-  title        String
-  description  String?     @db.Text
-  status       JobStatus   @default(PENDING)
-  priority     Priority    @default(NORMAL)
-  isUrgent     Boolean     @default(false)
-  isLate       Boolean     @default(false)
-  assignedToId String
-  assignedById String
-  managerId    String?
-  supervisorId String?
-  departmentId String?
-  serviceTypes ServiceType[]
-  progress     Int         @default(0) // Progress percentage 0-100
-  startedAt    DateTime?
-  dueDate      DateTime?
-  completedAt  DateTime?
-  tags         String[]
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-
-  assignedTo    User            @relation("AssignedJobs", fields: [assignedToId], references: [id])
-  assignedBy    User            @relation("CreatedJobs", fields: [assignedById], references: [id])
-  manager       User?           @relation("ManagedJobs", fields: [managerId], references: [id])
-  supervisor    User?           @relation("SupervisedJobs", fields: [supervisorId], references: [id])
-  department    Department?     @relation(fields: [departmentId], references: [id])
-  comments      Comment[]
-  statusUpdates StatusUpdate[]
-  attachments   Attachment[]
-
-  @@index([jobId])
-  @@index([assignedToId])
-  @@index([assignedById])
-  @@index([managerId])
-  @@index([supervisorId])
-  @@index([departmentId])
-  @@index([status])
-  @@index([dueDate])
-}
-
-model Comment {
-  id          String   @id @default(cuid())
-  content     String   @db.Text
-  jobId       String
-  userId      String
-  mentions    String[] // Array of user IDs mentioned in comment
-  isEdited    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([jobId])
-  @@index([userId])
-}
-
-model StatusUpdate {
-  id        String   @id @default(cuid())
-  jobId     String
-  userId    String
-  action    String
-  oldValue  String?
-  newValue  String?
-  comment   String?  @db.Text // Optional comment explaining the change
-  timestamp DateTime @default(now())
-
-  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([jobId])
-  @@index([userId])
-}
-
-model Attachment {
-  id        String   @id @default(cuid())
-  jobId     String
-  filename  String
-  url       String
-  fileType  String
-  fileSize  Int
-  createdAt DateTime @default(now())
-
-  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
-
-  @@index([jobId])
-}
-
-model Notification {
-  id         String   @id @default(cuid())
-  userId     String
-  type       String   // JOB_ASSIGNED, COMMENT_MENTION, STATUS_CHANGE, DUE_DATE_REMINDER, etc.
-  title      String
-  content    String   @db.Text
-  jobId      String?
-  commentId  String?  // For mention notifications
-  actionUrl  String?  // Deep link to relevant page
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([isRead])
-  @@index([createdAt])
+enum UserRole {
+  ADMIN
+  MANAGER
+  SUPERVISOR
+  STAFF
 }

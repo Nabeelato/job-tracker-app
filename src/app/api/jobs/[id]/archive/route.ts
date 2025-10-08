@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { canCompleteJob, canCancelJob } from "@/lib/permissions"
+import { logJobCompleted, logJobCancelled, logCommentAdded } from "@/lib/activity"
 
 export async function POST(
   request: NextRequest,
@@ -85,6 +86,13 @@ export async function POST(
       },
     })
 
+    // Log activity
+    if (action === "complete") {
+      await logJobCompleted(params.id, dbUser.id)
+    } else {
+      await logJobCancelled(params.id, dbUser.id, reason)
+    }
+
     // Create optional comment with reason
     if (reason && reason.trim() !== "") {
       await prisma.comment.create({
@@ -104,6 +112,9 @@ export async function POST(
           newValue: reason.substring(0, 100),
         },
       })
+
+      // Log comment activity
+      await logCommentAdded(params.id, dbUser.id, dbUser.name || "User")
     }
 
     // Notify relevant users
@@ -122,7 +133,7 @@ export async function POST(
       await prisma.notification.create({
         data: {
           userId,
-          type: action === "complete" ? "JOB_COMPLETED" : "JOB_CANCELLED",
+          type: "JOB_COMPLETED",
           title: `Job ${action === "complete" ? "Completed" : "Cancelled"}`,
           content: `"${existingJob.title}" has been ${action === "complete" ? "completed" : "cancelled"} by ${dbUser.name}`,
           jobId: params.id,

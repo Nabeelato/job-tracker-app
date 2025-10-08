@@ -261,7 +261,7 @@ async function main() {
   await prisma.notification.create({
     data: {
       userId: staff2.id,
-      type: 'JOB_URGENT',
+      type: 'JOB_ASSIGNED',
       title: 'Urgent job assigned',
       content: 'You have been assigned to urgent job "VAT Return Filing Q3"',
       jobId: job2.id,

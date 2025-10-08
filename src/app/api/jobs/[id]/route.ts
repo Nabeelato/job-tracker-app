@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { canEditJobDetails, canDeleteJobs } from "@/lib/permissions"
+import { logStatusChanged, logJobUpdated, logJobCompleted, logJobReassigned } from "@/lib/activity"
 
 export async function GET(
   request: NextRequest,
@@ -158,15 +159,44 @@ export async function PATCH(
     }
 
     const updateData: any = {}
-    if (title) updateData.title = title
-    if (description) updateData.description = description
-    if (priority) updateData.priority = priority
-    if (dueDate) updateData.dueDate = new Date(dueDate)
-    if (tags) updateData.tags = tags
-    if (status) updateData.status = status
-    if (assignedToId) updateData.assignedToId = assignedToId
-    if (managerId) updateData.managerId = managerId
-    if (supervisorId) updateData.supervisorId = supervisorId
+    const fieldsChanged: string[] = []
+    
+    if (title && title !== existingJob.title) {
+      updateData.title = title
+      fieldsChanged.push("title")
+    }
+    if (description && description !== existingJob.description) {
+      updateData.description = description
+      fieldsChanged.push("description")
+    }
+    if (priority && priority !== existingJob.priority) {
+      updateData.priority = priority
+      fieldsChanged.push("priority")
+    }
+    if (dueDate) {
+      updateData.dueDate = new Date(dueDate)
+      fieldsChanged.push("due date")
+    }
+    if (tags) {
+      updateData.tags = tags
+      fieldsChanged.push("tags")
+    }
+    if (status && status !== existingJob.status) {
+      updateData.status = status
+      fieldsChanged.push("status")
+    }
+    if (assignedToId && assignedToId !== existingJob.assignedToId) {
+      updateData.assignedToId = assignedToId
+      fieldsChanged.push("assigned to")
+    }
+    if (managerId && managerId !== existingJob.managerId) {
+      updateData.managerId = managerId
+      fieldsChanged.push("manager")
+    }
+    if (supervisorId && supervisorId !== existingJob.supervisorId) {
+      updateData.supervisorId = supervisorId
+      fieldsChanged.push("supervisor")
+    }
 
     // If marking as completed, set completedAt
     if (status === "COMPLETED" && existingJob.status !== "COMPLETED") {
@@ -195,6 +225,10 @@ export async function PATCH(
           newValue: newStaff?.name || "Unknown",
         },
       })
+
+      // Log activity
+      const previousAssigneeName = existingJob.assignedTo?.name || "Unassigned"
+      await logJobReassigned(params.id, dbUser.id, previousAssigneeName, newStaff?.name || "Staff", assignedToId)
 
       // Notify new staff member
       if (assignedToId !== dbUser.id) {
@@ -248,18 +282,31 @@ export async function PATCH(
         },
       })
 
+      // Log activity
+      await logStatusChanged(params.id, dbUser.id, existingJob.status, status)
+      
+      // If completed, log completion
+      if (status === "COMPLETED") {
+        await logJobCompleted(params.id, dbUser.id)
+      }
+
       // Notify assigned user about status change
       if (existingJob.assignedToId !== dbUser.id) {
         await prisma.notification.create({
           data: {
             userId: existingJob.assignedToId,
-            type: "STATUS_CHANGED",
+            type: "JOB_STATUS_CHANGED",
             title: "Job status updated",
             content: `"${existingJob.title}" status changed to ${status}`,
             jobId: params.id,
           },
         })
       }
+    }
+
+    // Log other field updates
+    if (fieldsChanged.length > 0 && !status) {
+      await logJobUpdated(params.id, dbUser.id, fieldsChanged)
     }
 
     return NextResponse.json(updatedJob)
