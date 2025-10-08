@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
             email: true,
           },
         },
-        Department_User_departmentIdToDepartment: {
+        Department: {
           select: {
             id: true,
             name: true,
