@@ -73,7 +73,7 @@ export async function PATCH(
       for (const userId of notifyIds) {
         await createNotification({
           userId: userId!,
-          type: "PROGRESS_UPDATE",
+          type: "JOB_STATUS_CHANGED",
           title: "Job is 50% complete",
           content: `${dbUser.name} updated "${job.title}" to 50% progress`,
           jobId: params.id,
@@ -88,7 +88,7 @@ export async function PATCH(
       for (const userId of notifyIds) {
         await createNotification({
           userId: userId!,
-          type: "PROGRESS_UPDATE",
+          type: "JOB_STATUS_CHANGED",
           title: "Job marked as 100% complete",
           content: `${dbUser.name} marked "${job.title}" as 100% complete`,
           jobId: params.id,
