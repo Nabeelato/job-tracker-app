@@ -31,7 +31,7 @@ export async function GET(
             name: true,
           },
         },
-        Department_User_departmentIdToDepartment: {
+        Department: {
           select: {
             name: true,
           },
