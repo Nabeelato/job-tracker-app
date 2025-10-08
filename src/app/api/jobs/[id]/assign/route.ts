@@ -120,13 +120,13 @@ export async function POST(
         jobId: job.id,
         userId: dbUser.id,
         action: "STAFF_ASSIGNED",
-        oldValue: job.assignedTo?.name || null,
+        oldValue: job.User_Job_assignedToIdToUser?.name || null,
         newValue: staff.name,
       },
     })
 
     // Log activity
-    const previousAssigneeName = job.assignedTo?.name || "Unassigned"
+    const previousAssigneeName = job.User_Job_assignedToIdToUser?.name || "Unassigned"
     if (job.assignedToId) {
       await logJobReassigned(job.id, dbUser.id, previousAssigneeName, staff.name || "Staff", staffId)
     } else {

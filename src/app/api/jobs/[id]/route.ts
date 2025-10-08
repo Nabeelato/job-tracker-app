@@ -222,13 +222,13 @@ export async function PATCH(
           jobId: params.id,
           userId: dbUser.id,
           action: "STAFF_ASSIGNED",
-          oldValue: existingJob.assignedTo?.name || "None",
+          oldValue: existingJob.User_Job_assignedToIdToUser?.name || "None",
           newValue: newStaff?.name || "Unknown",
         },
       })
 
       // Log activity
-      const previousAssigneeName = existingJob.assignedTo?.name || "Unassigned"
+      const previousAssigneeName = existingJob.User_Job_assignedToIdToUser?.name || "Unassigned"
       await logJobReassigned(params.id, dbUser.id, previousAssigneeName, newStaff?.name || "Staff", assignedToId)
 
       // Notify new staff member
@@ -254,7 +254,7 @@ export async function PATCH(
           jobId: params.id,
           userId: dbUser.id,
           action: "MANAGER_ASSIGNED",
-          oldValue: existingJob.manager?.name || "None",
+          oldValue: existingJob.User_Job_managerIdToUser?.name || "None",
           newValue: newManager?.name || "Unknown",
         },
       })
@@ -268,7 +268,7 @@ export async function PATCH(
           jobId: params.id,
           userId: dbUser.id,
           action: "SUPERVISOR_ASSIGNED",
-          oldValue: existingJob.supervisor?.name || "None",
+          oldValue: existingJob.User_Job_supervisorIdToUser?.name || "None",
           newValue: newSupervisor?.name || "Unknown",
         },
       })

@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
         Department: true,
         _count: {
           select: {
-            Comment: true,
+            comments: true,
           },
         },
       },
@@ -81,13 +81,13 @@ export async function GET(req: NextRequest) {
     const userWorkload: { [key: string]: { name: string; count: number; role: string } } = {};
     
     allJobs.forEach((job: any) => {
-      if (job.assignedTo) {
-        const userId = job.assignedTo.id;
+      if (job.User_Job_assignedToIdToUser) {
+        const userId = job.User_Job_assignedToIdToUser.id;
         if (!userWorkload[userId]) {
           userWorkload[userId] = {
-            name: job.assignedTo.name,
+            name: job.User_Job_assignedToIdToUser.name,
             count: 0,
-            role: job.assignedTo.role,
+            role: job.User_Job_assignedToIdToUser.role,
           };
         }
         userWorkload[userId].count++;
@@ -102,11 +102,11 @@ export async function GET(req: NextRequest) {
     const departmentWorkload: { [key: string]: { name: string; count: number } } = {};
     
     allJobs.forEach((job: any) => {
-      if (job.department) {
-        const deptId = job.department.id;
+      if (job.Department) {
+        const deptId = job.Department.id;
         if (!departmentWorkload[deptId]) {
           departmentWorkload[deptId] = {
-            name: job.department.name,
+            name: job.Department.name,
             count: 0,
           };
         }
