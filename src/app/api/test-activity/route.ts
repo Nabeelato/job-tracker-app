@@ -32,7 +32,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       include: {
         User: { select: { name: true } },
-        job: { select: { jobId: true, clientName: true } },
+        Job: { select: { jobId: true, clientName: true } },
       },
     });
 
