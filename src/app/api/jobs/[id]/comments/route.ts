@@ -94,7 +94,7 @@ export async function POST(
       if (mentionedUserId !== dbUser.id) {
         await createNotification({
           userId: mentionedUserId,
-          type: "COMMENT_MENTION",
+          type: "MENTION",
           title: "You were mentioned in a comment",
           content: `${dbUser.name} mentioned you in "${job?.title}": ${content.substring(0, 100)}`,
           jobId: params.id,
@@ -116,7 +116,7 @@ export async function POST(
     for (const userId of notifyUserIds) {
       await createNotification({
         userId: userId!,
-        type: "COMMENT_ADDED",
+        type: "JOB_COMMENT",
         title: "New comment on job",
         content: `${dbUser.name} commented on "${job?.title}"`,
         jobId: params.id,
