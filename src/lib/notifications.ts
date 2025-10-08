@@ -49,7 +49,7 @@ export async function getJobTeamMembers(jobId: string) {
   const job = await prisma.job.findUnique({
     where: { id: jobId },
     include: {
-      assignedTo: {
+      User_Job_assignedToIdToUser: {
         select: {
           id: true,
           name: true,
@@ -57,7 +57,7 @@ export async function getJobTeamMembers(jobId: string) {
           role: true,
         },
       },
-      assignedBy: {
+      User_Job_assignedByIdToUser: {
         select: {
           id: true,
           name: true,
@@ -65,7 +65,7 @@ export async function getJobTeamMembers(jobId: string) {
           role: true,
         },
       },
-      manager: {
+      User_Job_managerIdToUser: {
         select: {
           id: true,
           name: true,
@@ -73,7 +73,7 @@ export async function getJobTeamMembers(jobId: string) {
           role: true,
         },
       },
-      supervisor: {
+      User_Job_supervisorIdToUser: {
         select: {
           id: true,
           name: true,
@@ -87,10 +87,10 @@ export async function getJobTeamMembers(jobId: string) {
   if (!job) return []
 
   const members = [
-    job.assignedTo,
-    job.assignedBy,
-    job.manager,
-    job.supervisor,
+    job.User_Job_assignedToIdToUser,
+    job.User_Job_assignedByIdToUser,
+    job.User_Job_managerIdToUser,
+    job.User_Job_supervisorIdToUser,
   ].filter(Boolean)
 
   // Remove duplicates
