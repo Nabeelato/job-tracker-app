@@ -13,10 +13,7 @@ export async function GET(request: NextRequest) {
 
     // Get all departments with details
     const departments = await prisma.department.findMany({
-      select: {
-        id: true,
-        name: true,
-        managerId: true,
+      include: {
         User_Department_managerIdToUser: {
           select: {
             id: true,
@@ -28,7 +25,7 @@ export async function GET(request: NextRequest) {
         _count: {
           select: {
             User_User_departmentIdToDepartment: true,
-            jobs: true,
+            Job: true,
           },
         },
       },
