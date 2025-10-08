@@ -220,6 +220,8 @@ export async function POST(request: NextRequest) {
     // Use managerId as the assignedById (job creator)
     const job = await prisma.job.create({
       data: {
+        id: crypto.randomUUID(),
+        updatedAt: new Date(),
         jobId,
         clientName,
         title,
