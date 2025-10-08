@@ -78,6 +78,7 @@ export async function POST(
     // Create status update entry
     await prisma.statusUpdate.create({
       data: {
+        id: crypto.randomUUID(),
         jobId: params.id,
         userId: dbUser.id,
         action: action === "complete" ? "JOB_COMPLETED" : "JOB_CANCELLED",
@@ -97,6 +98,8 @@ export async function POST(
     if (reason && reason.trim() !== "") {
       await prisma.comment.create({
         data: {
+          id: crypto.randomUUID(),
+          updatedAt: new Date(),
           content: `${action === "complete" ? "Completed" : "Cancelled"} by ${dbUser.name}. Reason: ${reason}`,
           jobId: params.id,
           userId: dbUser.id,
@@ -106,6 +109,7 @@ export async function POST(
       // Create status update for comment
       await prisma.statusUpdate.create({
         data: {
+          id: crypto.randomUUID(),
           jobId: params.id,
           userId: dbUser.id,
           action: "COMMENT_ADDED",
@@ -132,6 +136,7 @@ export async function POST(
     for (const userId of Array.from(userIdsToNotify)) {
       await prisma.notification.create({
         data: {
+          id: crypto.randomUUID(),
           userId,
           type: "JOB_COMPLETED",
           title: `Job ${action === "complete" ? "Completed" : "Cancelled"}`,

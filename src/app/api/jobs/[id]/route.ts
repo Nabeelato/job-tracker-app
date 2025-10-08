@@ -218,6 +218,7 @@ export async function PATCH(
       const newStaff = await prisma.user.findUnique({ where: { id: assignedToId } })
       await prisma.statusUpdate.create({
         data: {
+          id: crypto.randomUUID(),
           jobId: params.id,
           userId: dbUser.id,
           action: "STAFF_ASSIGNED",
@@ -234,6 +235,7 @@ export async function PATCH(
       if (assignedToId !== dbUser.id) {
         await prisma.notification.create({
           data: {
+            id: crypto.randomUUID(),
             userId: assignedToId,
             type: "JOB_ASSIGNED",
             title: "Job assigned to you",
@@ -248,6 +250,7 @@ export async function PATCH(
       const newManager = await prisma.user.findUnique({ where: { id: managerId } })
       await prisma.statusUpdate.create({
         data: {
+          id: crypto.randomUUID(),
           jobId: params.id,
           userId: dbUser.id,
           action: "MANAGER_ASSIGNED",
@@ -261,6 +264,7 @@ export async function PATCH(
       const newSupervisor = await prisma.user.findUnique({ where: { id: supervisorId } })
       await prisma.statusUpdate.create({
         data: {
+          id: crypto.randomUUID(),
           jobId: params.id,
           userId: dbUser.id,
           action: "SUPERVISOR_ASSIGNED",
@@ -274,6 +278,7 @@ export async function PATCH(
     if (status && status !== existingJob.status) {
       await prisma.statusUpdate.create({
         data: {
+          id: crypto.randomUUID(),
           jobId: params.id,
           userId: dbUser.id,
           action: "STATUS_CHANGED",
@@ -294,6 +299,7 @@ export async function PATCH(
       if (existingJob.assignedToId !== dbUser.id) {
         await prisma.notification.create({
           data: {
+            id: crypto.randomUUID(),
             userId: existingJob.assignedToId,
             type: "JOB_STATUS_CHANGED",
             title: "Job status updated",

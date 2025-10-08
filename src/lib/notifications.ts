@@ -15,6 +15,7 @@ export async function createNotification(params: CreateNotificationParams) {
   try {
     await prisma.notification.create({
       data: {
+        id: crypto.randomUUID(),
         userId: params.userId,
         type: params.type,
         title: params.title,

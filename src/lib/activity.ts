@@ -29,6 +29,7 @@ export async function logActivity(
     // Create activity record
     prisma.activity.create({
       data: {
+        id: crypto.randomUUID(),
         jobId,
         userId,
         type,

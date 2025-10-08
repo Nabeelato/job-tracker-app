@@ -270,6 +270,7 @@ export async function POST(request: NextRequest) {
     // Create status update
     await prisma.statusUpdate.create({
       data: {
+        id: crypto.randomUUID(),
         jobId: job.id,
         userId: managerId,
         action: "JOB_CREATED",
@@ -284,6 +285,7 @@ export async function POST(request: NextRequest) {
     // Create notification for supervisor
     await prisma.notification.create({
       data: {
+        id: crypto.randomUUID(),
         userId: supervisorId,
         type: "JOB_ASSIGNED",
         title: "New job assigned to you",

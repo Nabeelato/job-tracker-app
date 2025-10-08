@@ -57,6 +57,7 @@ export async function PATCH(
     // Create status update
     await prisma.statusUpdate.create({
       data: {
+        id: crypto.randomUUID(),
         jobId: params.id,
         userId: dbUser.id,
         action: "PROGRESS_UPDATED",

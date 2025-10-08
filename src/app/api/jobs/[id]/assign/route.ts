@@ -116,6 +116,7 @@ export async function POST(
     // Create a status update entry for the assignment
     await prisma.statusUpdate.create({
       data: {
+        id: crypto.randomUUID(),
         jobId: job.id,
         userId: dbUser.id,
         action: "STAFF_ASSIGNED",

@@ -88,6 +88,8 @@ export async function POST(request: NextRequest) {
 
     const department = await prisma.department.create({
       data: {
+        id: crypto.randomUUID(),
+        updatedAt: new Date(),
         name,
         managerId,
       },

@@ -54,6 +54,7 @@ export async function POST(
     // Create a status update for the completion request
     await prisma.statusUpdate.create({
       data: {
+        id: crypto.randomUUID(),
         jobId: job.id,
         userId: dbUser.id,
         action: "COMPLETION_REQUESTED",
@@ -66,6 +67,8 @@ export async function POST(
     if (message) {
       await prisma.comment.create({
         data: {
+          id: crypto.randomUUID(),
+          updatedAt: new Date(),
           jobId: job.id,
           userId: dbUser.id,
           content: `[Completion Request] ${message}`,

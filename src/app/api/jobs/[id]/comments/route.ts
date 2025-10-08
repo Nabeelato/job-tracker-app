@@ -43,6 +43,8 @@ export async function POST(
 
     const comment = await prisma.comment.create({
       data: {
+        id: crypto.randomUUID(),
+        updatedAt: new Date(),
         content,
         jobId: params.id,
         userId: dbUser.id,
@@ -63,6 +65,7 @@ export async function POST(
     // Create a timeline entry for the comment
     await prisma.statusUpdate.create({
       data: {
+        id: crypto.randomUUID(),
         jobId: params.id,
         userId: dbUser.id,
         action: "COMMENT_ADDED",
