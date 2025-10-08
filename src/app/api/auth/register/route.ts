@@ -55,12 +55,7 @@ export async function POST(request: NextRequest) {
         role: true,
         isActive: true,
         createdAt: true,
-        department: {
-          select: {
-            id: true,
-            name: true,
-          }
-        }
+        departmentId: true,
       }
     })
 
