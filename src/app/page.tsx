@@ -1,7 +1,18 @@
 import Link from "next/link";
 import { CheckCircle2, Users, Clock, TrendingUp } from "lucide-react";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-export default function Home() {
+export default async function Home() {
+  // Check if user is authenticated
+  const session = await getServerSession(authOptions);
+  
+  // If logged in, redirect to dashboard
+  if (session) {
+    redirect("/dashboard");
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-16">
