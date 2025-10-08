@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
             email: credentials.email
           },
           include: {
-            department: true
+            Department_User_departmentIdToDepartment: true
           }
         })
 

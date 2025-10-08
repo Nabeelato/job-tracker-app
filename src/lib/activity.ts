@@ -227,7 +227,7 @@ export async function getJobActivities(
   return await prisma.activity.findMany({
     where: { jobId },
     include: {
-      user: {
+      User: {
         select: {
           id: true,
           name: true,
@@ -251,7 +251,7 @@ export async function getUserActivities(
   return await prisma.activity.findMany({
     where: { userId },
     include: {
-      job: {
+      Job: {
         select: {
           id: true,
           title: true,
