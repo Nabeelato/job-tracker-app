@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
         Department: true,
         _count: {
           select: {
-            comments: true,
+            Comment: true,
           },
         },
       },
