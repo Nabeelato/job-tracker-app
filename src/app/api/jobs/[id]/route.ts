@@ -36,7 +36,7 @@ export async function GET(
           },
         },
         Department: true,
-        comments: {
+        Comment: {
           include: {
             User: {
               select: {
@@ -51,7 +51,7 @@ export async function GET(
             createdAt: "desc",
           },
         },
-        statusUpdates: {
+        StatusUpdate: {
           include: {
             User: {
               select: {
@@ -65,7 +65,7 @@ export async function GET(
             timestamp: "asc",
           },
         },
-        attachments: true,
+        Attachment: true,
       },
     })
 
