@@ -89,7 +89,7 @@ model Job {
   lastActivityAt              DateTime       @default(now())
   lastReminderSentAt          DateTime?
   reminderSnoozeUntil         DateTime?
-  Activity                    Activity[]
+  activities                  Activity[]
   Attachment                  Attachment[]
   Comment                     Comment[]
   User_Job_assignedByIdToUser User           @relation("Job_assignedByIdToUser", fields: [assignedById], references: [id])
@@ -155,7 +155,7 @@ model User {
   avatar                                   String?
   createdAt                                DateTime       @default(now())
   updatedAt                                DateTime
-  Activity                                 Activity[]
+  activities                               Activity[]
   Comment                                  Comment[]
   Department_Department_managerIdToUser    Department?    @relation("Department_managerIdToUser")
   Job_Job_assignedByIdToUser               Job[]          @relation("Job_assignedByIdToUser")
