@@ -35,10 +35,10 @@ export async function GET(
       },
     })
 
-    // Map User to user for frontend compatibility
+    // Map User to user for frontend compatibility and handle null users
     const formattedTimeline = timeline.map((event) => ({
       ...event,
-      user: event.User,
+      user: event.User || { id: 'unknown', name: 'Unknown User', avatar: null },
     }))
 
     return NextResponse.json(formattedTimeline)

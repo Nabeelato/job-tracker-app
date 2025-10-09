@@ -1284,6 +1284,10 @@ export default function JobsPage() {
                       ) : timeline[job.id] && timeline[job.id].length > 0 ? (
                         <div className="space-y-3">
                           {timeline[job.id].map((event, idx) => {
+                            // Safety checks for event properties
+                            if (!event || !event.id) return null;
+                            const userName = event.user?.name || 'Unknown User';
+                            
                             const iconBgClass = 
                               event.action === "COMMENT_ADDED" ? "bg-gradient-to-br from-blue-500 to-blue-600" :
                               event.action === "STAFF_ASSIGNED" ? "bg-gradient-to-br from-green-500 to-green-600" :
@@ -1316,7 +1320,7 @@ export default function JobsPage() {
                                   // Comment style - more prominent with card
                                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 border-l-4 border-blue-500">
                                     <div className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                      <span className="text-blue-600 dark:text-blue-400">{event.user.name}</span> commented:
+                                      <span className="text-blue-600 dark:text-blue-400">{userName}</span> commented:
                                     </div>
                                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-2.5">
                                       <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
@@ -1331,7 +1335,7 @@ export default function JobsPage() {
                                   // Other events - card style
                                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3">
                                     <div className="text-sm text-gray-900 dark:text-white">
-                                      <span className="font-semibold">{event.user.name}</span>
+                                      <span className="font-semibold">{userName}</span>
                                       {" "}
                                       {event.action === "JOB_CREATED" && "created this job"}
                                       {event.action === "STAFF_ASSIGNED" && `assigned to ${event.newValue}`}
@@ -1584,7 +1588,12 @@ export default function JobsPage() {
                         </div>
                         {job.timeline && job.timeline.length > 0 ? (
                           <div className="space-y-2">
-                            {job.timeline.map((event: any) => (
+                            {job.timeline.map((event: any) => {
+                              // Safety check for event and user
+                              if (!event || !event.id) return null;
+                              const userName = event.user?.name || 'Unknown User';
+                              
+                              return (
                               <div
                                 key={event.id}
                                 className="bg-white dark:bg-gray-800 p-3 rounded"
@@ -1603,10 +1612,11 @@ export default function JobsPage() {
                                   </p>
                                 )}
                                 <div className="text-xs text-gray-500 mt-1">
-                                  by {event.user.name}
+                                  by {userName}
                                 </div>
                               </div>
-                            ))}
+                            );
+                            })}
                           </div>
                         ) : (
                           <div className="text-sm text-gray-500 dark:text-gray-400">
