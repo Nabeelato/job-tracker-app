@@ -35,6 +35,20 @@ export async function GET(
             email: true,
           },
         },
+        User_Job_managerIdToUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        User_Job_supervisorIdToUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
         Department: true,
         Comment: {
           include: {
@@ -84,7 +98,25 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(job)
+    // Transform Prisma relation names to frontend-friendly names
+    const transformedJob = {
+      ...job,
+      assignedTo: job.User_Job_assignedToIdToUser,
+      assignedBy: job.User_Job_assignedByIdToUser,
+      manager: job.User_Job_managerIdToUser || null,
+      supervisor: job.User_Job_supervisorIdToUser || null,
+      department: job.Department,
+      comments: job.Comment?.map((comment: any) => ({
+        ...comment,
+        user: comment.User,
+      })) || [],
+      statusUpdates: job.StatusUpdate?.map((update: any) => ({
+        ...update,
+        user: update.User,
+      })) || [],
+    };
+
+    return NextResponse.json(transformedJob)
   } catch (error) {
     console.error("Error fetching job:", error)
     return NextResponse.json(
