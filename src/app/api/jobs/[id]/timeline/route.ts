@@ -35,7 +35,13 @@ export async function GET(
       },
     })
 
-    return NextResponse.json(timeline)
+    // Map User to user for frontend compatibility
+    const formattedTimeline = timeline.map((event) => ({
+      ...event,
+      user: event.User,
+    }))
+
+    return NextResponse.json(formattedTimeline)
   } catch (error) {
     console.error("Error fetching timeline:", error)
     return NextResponse.json(
