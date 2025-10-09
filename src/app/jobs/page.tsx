@@ -165,6 +165,7 @@ export default function JobsPage() {
   const [dateRangeFilter, setDateRangeFilter] = useState<string>("ALL"); // NEW: Date range
   const [overdueFilter, setOverdueFilter] = useState<boolean>(false); // NEW: Overdue filter
   const [monthFilter, setMonthFilter] = useState<string>("ALL"); // NEW: Month filter
+  const [filtersExpanded, setFiltersExpanded] = useState(false); // NEW: Filter panel expansion state
   const [viewMode, setViewMode] = useState<"table" | "grid" | "monthly">("monthly"); // Add monthly view
 
   // For supervisors assigning staff
@@ -620,31 +621,71 @@ export default function JobsPage() {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h2>
-            {(searchTerm || serviceTypeFilter !== "ALL" || priorityFilter !== "ALL" || statusFilter !== "ALL" || userFilter !== "ALL" || departmentFilter !== "ALL" || dateRangeFilter !== "ALL" || monthFilter !== "ALL" || overdueFilter) && (
-              <button
-                onClick={() => {
-                  setSearchTerm("");
-                  setServiceTypeFilter("ALL");
-                  setPriorityFilter("ALL");
-                  setStatusFilter("ALL");
-                  setUserFilter("ALL");
-                  setDepartmentFilter("ALL");
-                  setDateRangeFilter("ALL");
-                  setMonthFilter("ALL");
-                  setOverdueFilter(false);
-                }}
-                className="ml-auto text-sm text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                Clear all filters
-              </button>
-            )}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {/* Filters - Collapsible */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6 overflow-hidden border border-gray-200 dark:border-gray-700">
+          {/* Filter Header - Always Visible */}
+          <button
+            onClick={() => setFiltersExpanded(!filtersExpanded)}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Filter className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Filters & Search
+              </h2>
+              {/* Active Filters Badge */}
+              {(() => {
+                const activeFiltersCount = [
+                  searchTerm,
+                  serviceTypeFilter !== "ALL" ? 1 : 0,
+                  priorityFilter !== "ALL" ? 1 : 0,
+                  statusFilter !== "ALL" ? 1 : 0,
+                  userFilter !== "ALL" ? 1 : 0,
+                  departmentFilter !== "ALL" ? 1 : 0,
+                  dateRangeFilter !== "ALL" ? 1 : 0,
+                  monthFilter !== "ALL" ? 1 : 0,
+                  overdueFilter ? 1 : 0
+                ].filter(f => f).length;
+                
+                return activeFiltersCount > 0 ? (
+                  <span className="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-semibold rounded-full">
+                    {activeFiltersCount} active
+                  </span>
+                ) : null;
+              })()}
+            </div>
+            <div className="flex items-center gap-3">
+              {(searchTerm || serviceTypeFilter !== "ALL" || priorityFilter !== "ALL" || statusFilter !== "ALL" || userFilter !== "ALL" || departmentFilter !== "ALL" || dateRangeFilter !== "ALL" || monthFilter !== "ALL" || overdueFilter) && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSearchTerm("");
+                    setServiceTypeFilter("ALL");
+                    setPriorityFilter("ALL");
+                    setStatusFilter("ALL");
+                    setUserFilter("ALL");
+                    setDepartmentFilter("ALL");
+                    setDateRangeFilter("ALL");
+                    setMonthFilter("ALL");
+                    setOverdueFilter(false);
+                  }}
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
+              {filtersExpanded ? (
+                <ChevronUp className="w-5 h-5 text-gray-500" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-500" />
+              )}
+            </div>
+          </button>
+
+          {/* Filter Content - Collapsible */}
+          {filtersExpanded && (
+            <div className="px-6 pb-6 pt-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {/* Search */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -850,6 +891,8 @@ export default function JobsPage() {
               </label>
             </div>
           </div>
+            </div>
+          )}
         </div>
 
         {/* Bulk Actions Bar */}
