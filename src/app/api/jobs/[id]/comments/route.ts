@@ -62,18 +62,6 @@ export async function POST(
       },
     })
 
-    // Create a timeline entry for the comment
-    await prisma.statusUpdate.create({
-      data: {
-        id: crypto.randomUUID(),
-        jobId: params.id,
-        userId: dbUser.id,
-        action: "COMMENT_ADDED",
-        oldValue: null,
-        newValue: content.substring(0, 100), // Store first 100 chars as preview
-      },
-    })
-
     // Log activity
     await logCommentAdded(params.id, dbUser.id, dbUser.name || "User")
 

@@ -110,10 +110,15 @@ export async function GET(
         ...comment,
         user: comment.User,
       })) || [],
-      statusUpdates: job.StatusUpdate?.map((update: any) => ({
-        ...update,
-        user: update.User,
-      })) || [],
+      statusUpdates: job.StatusUpdate
+        ?.filter((update: any) => update.action === "STATUS_CHANGED") // Only show actual status changes
+        ?.map((update: any) => ({
+          id: update.id,
+          oldStatus: update.oldValue,
+          newStatus: update.newValue,
+          createdAt: update.timestamp,
+          user: update.User,
+        })) || [],
     };
 
     return NextResponse.json(transformedJob)
