@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkReminderNeeded } from "@/lib/business-hours";
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 /**
  * Cron job to check for inactive jobs and send reminders
  * Should be triggered hourly by Vercel Cron or external scheduler

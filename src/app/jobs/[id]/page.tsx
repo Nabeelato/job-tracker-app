@@ -145,12 +145,6 @@ export default function JobDetailPage() {
   });
   const [users, setUsers] = useState<Array<{ id: string; name: string; role: string }>>([]);
 
-  useEffect(() => {
-    if (jobId) {
-      fetchJob();
-    }
-  }, [jobId]);
-
   const fetchJob = async () => {
     try {
       setLoading(true);
@@ -166,6 +160,13 @@ export default function JobDetailPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (jobId) {
+      fetchJob();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId]);
 
   const handleStatusChange = async (newStatus: string) => {
     if (!session || !job) return;

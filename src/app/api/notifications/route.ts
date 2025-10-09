@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch user's notifications
 export async function GET(request: NextRequest) {
   try {

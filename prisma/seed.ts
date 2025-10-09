@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
 
 const prisma = new PrismaClient()
 
@@ -10,18 +11,24 @@ async function main() {
   console.log('Creating departments...')
   const bookkeepingDept = await prisma.department.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       name: 'BookKeeping Department',
     },
   })
 
   const auditDept = await prisma.department.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       name: 'Audit Department',
     },
   })
 
   const vatDept = await prisma.department.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       name: 'VAT/TAX Department',
     },
   })
@@ -31,6 +38,8 @@ async function main() {
   const adminPassword = await bcrypt.hash('admin123', 10)
   const admin = await prisma.user.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       name: 'Admin User',
       email: 'admin@example.com',
       password: adminPassword,
@@ -42,6 +51,8 @@ async function main() {
   const managerPassword = await bcrypt.hash('manager123', 10)
   const bookkeepingManager = await prisma.user.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       name: 'John Manager',
       email: 'manager@example.com',
       password: managerPassword,
@@ -60,6 +71,8 @@ async function main() {
   const supervisorPassword = await bcrypt.hash('supervisor123', 10)
   const supervisor = await prisma.user.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       name: 'Sarah Supervisor',
       email: 'supervisor@example.com',
       password: supervisorPassword,
@@ -72,6 +85,8 @@ async function main() {
   const staffPassword = await bcrypt.hash('staff123', 10)
   const staff1 = await prisma.user.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       name: 'Mike Staff',
       email: 'staff@example.com',
       password: staffPassword,
@@ -83,6 +98,8 @@ async function main() {
 
   const staff2 = await prisma.user.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       name: 'Jane Employee',
       email: 'jane@example.com',
       password: staffPassword,
@@ -96,6 +113,8 @@ async function main() {
   console.log('Creating jobs...')
   const job1 = await prisma.job.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       jobId: 'JOB-001',
       clientName: 'ABC Company Ltd',
       title: 'Monthly Bookkeeping for ABC Company',
@@ -114,6 +133,8 @@ async function main() {
 
   const job2 = await prisma.job.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       jobId: 'JOB-002',
       clientName: 'XYZ Corp',
       title: 'VAT Return Filing Q3',
@@ -132,6 +153,8 @@ async function main() {
 
   const job3 = await prisma.job.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       jobId: 'JOB-003',
       clientName: 'Tech Startup Inc',
       title: 'Annual Audit Preparation',
@@ -150,6 +173,8 @@ async function main() {
 
   const job4 = await prisma.job.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       jobId: 'JOB-004',
       clientName: 'Retail Store Ltd',
       title: 'Bookkeeping and VAT Services',
@@ -171,6 +196,8 @@ async function main() {
   console.log('Creating comments...')
   await prisma.comment.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       content: 'Started working on bank reconciliation. All statements received from client.',
       jobId: job1.id,
       userId: staff1.id,
@@ -179,6 +206,8 @@ async function main() {
 
   await prisma.comment.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       content: 'Great progress! Please ensure all expense categories are correct before finalizing.',
       jobId: job1.id,
       userId: bookkeepingManager.id,
@@ -187,6 +216,8 @@ async function main() {
 
   await prisma.comment.create({
     data: {
+      id: randomUUID(),
+      updatedAt: new Date(),
       content: 'Waiting for additional documentation from client before proceeding with audit.',
       jobId: job3.id,
       userId: staff2.id,
@@ -197,6 +228,7 @@ async function main() {
   console.log('Creating status updates...')
   await prisma.statusUpdate.create({
     data: {
+      id: randomUUID(),
       jobId: job1.id,
       userId: bookkeepingManager.id,
       action: 'Job created',
@@ -206,6 +238,7 @@ async function main() {
 
   await prisma.statusUpdate.create({
     data: {
+      id: randomUUID(),
       jobId: job1.id,
       userId: staff1.id,
       action: 'Status changed',
@@ -216,6 +249,7 @@ async function main() {
 
   await prisma.statusUpdate.create({
     data: {
+      id: randomUUID(),
       jobId: job3.id,
       userId: staff2.id,
       action: 'Status changed',
@@ -226,6 +260,7 @@ async function main() {
 
   await prisma.statusUpdate.create({
     data: {
+      id: randomUUID(),
       jobId: job4.id,
       userId: staff1.id,
       action: 'Status changed',
@@ -238,6 +273,7 @@ async function main() {
   console.log('Creating notifications...')
   await prisma.notification.create({
     data: {
+      id: randomUUID(),
       userId: staff1.id,
       type: 'JOB_ASSIGNED',
       title: 'New job assigned',
@@ -249,6 +285,7 @@ async function main() {
 
   await prisma.notification.create({
     data: {
+      id: randomUUID(),
       userId: bookkeepingManager.id,
       type: 'JOB_COMPLETED',
       title: 'Job completed',
@@ -260,6 +297,7 @@ async function main() {
 
   await prisma.notification.create({
     data: {
+      id: randomUUID(),
       userId: staff2.id,
       type: 'JOB_ASSIGNED',
       title: 'Urgent job assigned',

@@ -142,9 +142,6 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    console.log("Received job creation data:", body); // Debug logging
-    console.log("Database user ID:", dbUser.id); // Debug logging
-    console.log("User role:", session.user.role); // Debug logging
     
     const {
       jobId,
@@ -197,7 +194,6 @@ export async function POST(request: NextRequest) {
     if (!serviceTypes || serviceTypes.length === 0) missingFields.push("Service Types");
 
     if (missingFields.length > 0) {
-      console.log("Missing fields detected:", missingFields); // Debug logging
       return NextResponse.json(
         { error: `Missing required fields: ${missingFields.join(", ")}` },
         { status: 400 }
