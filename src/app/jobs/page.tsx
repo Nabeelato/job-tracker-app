@@ -166,7 +166,7 @@ export default function JobsPage() {
   const [overdueFilter, setOverdueFilter] = useState<boolean>(false); // NEW: Overdue filter
   const [monthFilter, setMonthFilter] = useState<string>("ALL"); // NEW: Month filter
   const [filtersExpanded, setFiltersExpanded] = useState(false); // NEW: Filter panel expansion state
-  const [viewMode, setViewMode] = useState<"table" | "grid" | "monthly">("monthly"); // Add monthly view
+  const [viewMode, setViewMode] = useState<"table" | "grid" | "monthly">("table"); // Default to table view
 
   // For supervisors assigning staff
   const [assigningStaff, setAssigningStaff] = useState<string | null>(null);
@@ -1314,84 +1314,84 @@ export default function JobsPage() {
                               </Link>
                             </div>
 
-                    {/* Timeline - Enhanced Design */}
-                    <div className="bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="p-1.5 bg-blue-600 rounded-md">
-                          <Clock className="w-4 h-4 text-white" />
+                    {/* Timeline - Compact Design */}
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <div className="p-1 bg-blue-600 rounded">
+                          <Clock className="w-3 h-3 text-white" />
                         </div>
-                        <h3 className="font-bold text-gray-900 dark:text-white">
+                        <h3 className="font-semibold text-xs text-gray-900 dark:text-white">
                           Timeline
                         </h3>
                       </div>
 
                       {loadingTimeline[job.id] ? (
-                        <div className="flex items-center gap-2 text-gray-500">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Loading timeline...
+                        <div className="flex items-center gap-1.5 text-gray-500 text-xs">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Loading...
                         </div>
                       ) : timeline[job.id] && timeline[job.id].length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           {timeline[job.id].map((event, idx) => {
                             // Safety checks for event properties
                             if (!event || !event.id) return null;
                             const userName = event.user?.name || 'Unknown User';
                             
                             const iconBgClass = 
-                              event.action === "COMMENT_ADDED" ? "bg-gradient-to-br from-blue-500 to-blue-600" :
-                              event.action === "STAFF_ASSIGNED" ? "bg-gradient-to-br from-green-500 to-green-600" :
-                              event.action === "COMPLETION_REQUESTED" ? "bg-gradient-to-br from-purple-500 to-purple-600" :
-                              "bg-gradient-to-br from-gray-500 to-gray-600";
+                              event.action === "COMMENT_ADDED" ? "bg-blue-500" :
+                              event.action === "STAFF_ASSIGNED" ? "bg-green-500" :
+                              event.action === "COMPLETION_REQUESTED" ? "bg-purple-500" :
+                              "bg-gray-500";
 
                             return (
                             <div key={event.id} className="relative">
-                              <div className="flex gap-3">
+                              <div className="flex gap-2">
                                 {/* Icon with connecting line */}
                                 <div className="flex flex-col items-center">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md ${iconBgClass}`}>
+                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm ${iconBgClass}`}>
                                     {event.action === "COMMENT_ADDED" ? (
-                                      <MessageSquare className="w-4 h-4 text-white" />
+                                      <MessageSquare className="w-3 h-3 text-white" />
                                     ) : event.action === "STAFF_ASSIGNED" ? (
-                                      <User className="w-4 h-4 text-white" />
+                                      <User className="w-3 h-3 text-white" />
                                     ) : event.action === "COMPLETION_REQUESTED" ? (
-                                      <CheckCircle className="w-4 h-4 text-white" />
+                                      <CheckCircle className="w-3 h-3 text-white" />
                                     ) : (
-                                      <Clock className="w-4 h-4 text-white" />
+                                      <Clock className="w-3 h-3 text-white" />
                                     )}
                                   </div>
                                   {idx < timeline[job.id].length - 1 && (
-                                    <div className="w-0.5 h-full bg-gradient-to-b from-gray-300 to-gray-200 dark:from-gray-600 dark:to-gray-700 mt-1" />
+                                    <div className="w-0.5 h-full bg-gray-300 dark:from-gray-600 mt-1" />
                                   )}
                                 </div>
 
-                                <div className="flex-1 pb-2">
+                                <div className="flex-1 pb-1">
                                 {event.action === "COMMENT_ADDED" ? (
-                                  // Comment style - more prominent with card
-                                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 border-l-4 border-blue-500">
-                                    <div className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
-                                      <span className="text-blue-600 dark:text-blue-400">{userName}</span> commented:
+                                  // Comment style - compact
+                                  <div className="bg-white dark:bg-gray-700 rounded p-2 border-l-2 border-blue-500">
+                                    <div className="text-xs font-medium text-gray-900 dark:text-white mb-1">
+                                      <span className="text-blue-600 dark:text-blue-400">{userName}</span> commented
                                     </div>
-                                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-2.5">
-                                      <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-1.5">
+                                      <div className="text-xs text-gray-700 dark:text-gray-200 line-clamp-3">
                                         {event.newValue}
                                       </div>
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
                                       {formatTimeAgo(new Date(event.timestamp))}
                                     </div>
                                   </div>
                                 ) : (
-                                  // Other events - card style
-                                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3">
-                                    <div className="text-sm text-gray-900 dark:text-white">
-                                      <span className="font-semibold">{userName}</span>
+                                  // Other events - compact card style
+                                  <div className="bg-white dark:bg-gray-700 rounded p-2">
+                                    <div className="text-xs text-gray-900 dark:text-white">
+                                      <span className="font-medium">{userName}</span>
                                       {" "}
                                       {event.action === "JOB_CREATED" && "created this job"}
                                       {event.action === "STAFF_ASSIGNED" && `assigned to ${event.newValue}`}
                                       {event.action === "COMPLETION_REQUESTED" && "requested completion"}
                                       {event.action === "STATUS_CHANGED" && `changed status to ${event.newValue ? getStatusLabel(event.newValue) : "N/A"}`}
                                     </div>
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
                                       {formatTimeAgo(new Date(event.timestamp))}
                                     </div>
                                   </div>
@@ -1403,7 +1403,7 @@ export default function JobsPage() {
                           })}
                         </div>
                       ) : (
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
                           No timeline events yet
                         </div>
                       )}
