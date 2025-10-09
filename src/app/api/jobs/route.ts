@@ -103,7 +103,18 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json(jobs)
+    // Transform Prisma relation names to frontend-friendly names
+    const transformedJobs = jobs.map((job: any) => ({
+      ...job,
+      assignedTo: job.User_Job_assignedToIdToUser,
+      assignedBy: job.User_Job_assignedByIdToUser,
+      manager: job.User_Job_managerIdToUser || null,
+      supervisor: job.User_Job_supervisorIdToUser || null,
+      department: job.Department,
+      commentsCount: job._count?.Comment || 0,
+    }));
+
+    return NextResponse.json(transformedJobs)
   } catch (error) {
     console.error("Error fetching jobs:", error)
     return NextResponse.json(
