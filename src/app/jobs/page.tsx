@@ -756,249 +756,211 @@ export default function JobsPage() {
           {filtersExpanded && (
             <div className="px-3 pb-3 pt-1.5 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-            {/* Search */}
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Search
-              </label>
-              <div className="relative">
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Job ID, Title, Client..."
-                  className="w-full pl-7 pr-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                />
+                {/* Search */}
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Search
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Job ID, Title, Client..."
+                      className="w-full pl-7 pr-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* Service Type Filter */}
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Service Type
+                  </label>
+                  <select
+                    value={serviceTypeFilter}
+                    onChange={(e) => setServiceTypeFilter(e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ALL">All Service Types</option>
+                    <option value="BOOKKEEPING">Bookkeeping</option>
+                    <option value="VAT">VAT</option>
+                    <option value="AUDIT">Audit</option>
+                    <option value="FINANCIAL_STATEMENTS">Financial Statements</option>
+                  </select>
+                </div>
+
+                {/* Priority Filter */}
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Priority
+                  </label>
+                  <select
+                    value={priorityFilter}
+                    onChange={(e) => setPriorityFilter(e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ALL">All Priorities</option>
+                    <option value="URGENT">Urgent</option>
+                    <option value="HIGH">High</option>
+                    <option value="NORMAL">Normal</option>
+                    <option value="LOW">Low</option>
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Status
+                  </label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ALL">All Statuses</option>
+                    <option value="PENDING">02: RFI</option>
+                    <option value="IN_PROGRESS">03: Info Sent to Lahore</option>
+                    <option value="ON_HOLD">04: Missing Info/Chase Info</option>
+                    <option value="AWAITING_APPROVAL">05: Info Completed</option>
+                  </select>
+                </div>
+
+                {/* User Filter - NEW */}
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <User className="w-3 h-3 inline mr-0.5" />
+                    User
+                  </label>
+                  <select
+                    value={userFilter}
+                    onChange={(e) => setUserFilter(e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ALL">All Users</option>
+                    {session?.user && (
+                      <option value={session.user.id} className="font-bold">
+                        🔵 My Jobs
+                      </option>
+                    )}
+                    <optgroup label="Staff">
+                      {allUsers.filter(u => u.role === 'STAFF').map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} {user.department && `(${user.department.name})`}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Supervisors">
+                      {allUsers.filter(u => u.role === 'SUPERVISOR').map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} {user.department && `(${user.department.name})`}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Managers">
+                      {allUsers.filter(u => u.role === 'MANAGER').map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name} {user.department && `(${user.department.name})`}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Admins">
+                      {allUsers.filter(u => u.role === 'ADMIN').map(user => (
+                        <option key={user.id} value={user.id}>
+                          {user.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                  {userFilter !== "ALL" && (() => {
+                    const selectedUser = allUsers.find(u => u.id === userFilter);
+                    return selectedUser ? (
+                      <p className="mt-0.5 text-[9px] text-gray-500 dark:text-gray-400">
+                        {selectedUser.role === 'STAFF' ? 'assigned to' : 
+                         selectedUser.role === 'SUPERVISOR' ? 'supervised by' : 
+                         'managed by'} {selectedUser.name}
+                      </p>
+                    ) : null;
+                  })()}
+                </div>
+
+                {/* Department Filter - NEW */}
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Building2 className="w-3 h-3 inline mr-0.5" />
+                    Department
+                  </label>
+                  <select
+                    value={departmentFilter}
+                    onChange={(e) => setDepartmentFilter(e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ALL">All Departments</option>
+                    {departments.map(dept => (
+                      <option key={dept.id} value={dept.id}>
+                        {dept.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Date Range Filter - NEW */}
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Calendar className="w-3 h-3 inline mr-0.5" />
+                    Due Date
+                  </label>
+                  <select
+                    value={dateRangeFilter}
+                    onChange={(e) => setDateRangeFilter(e.target.value)}
+                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ALL">All Dates</option>
+                    <option value="TODAY">Due Today</option>
+                    <option value="THIS_WEEK">Due This Week</option>
+                    <option value="THIS_MONTH">Due This Month</option>
+                    <option value="OVERDUE">Overdue</option>
+                  </select>
+                </div>
+
+                {/* Month Filter - NEW */}
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <Calendar className="w-3 h-3 inline mr-0.5" />
+                    Filter by Month
+                  </label>
+                  <select
+                    value={monthFilter}
+                    onChange={(e) => setMonthFilter(e.target.value)}
+                    className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="ALL">All Months</option>
+                    {availableMonths.map(({ key, label, count }) => (
+                      <option key={key} value={key}>
+                        {label} ({count})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Overdue Only Toggle - NEW */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 inline mr-1" />
+                    Show Only
+                  </label>
+                  <label className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750">
+                    <input
+                      type="checkbox"
+                      checked={overdueFilter}
+                      onChange={(e) => setOverdueFilter(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-offset-gray-800"
+                    />
+                    <span className="text-sm text-gray-900 dark:text-white">Overdue Jobs</span>
+                  </label>
+                </div>
               </div>
-            </div>
-
-            {/* Service Type Filter */}
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Service Type
-              </label>
-              <select
-                value={serviceTypeFilter}
-                onChange={(e) => setServiceTypeFilter(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="ALL">All Service Types</option>
-                <option value="BOOKKEEPING">Bookkeeping</option>
-                <option value="VAT">VAT</option>
-                <option value="AUDIT">Audit</option>
-                <option value="FINANCIAL_STATEMENTS">Financial Statements</option>
-              </select>
-            </div>
-
-            {/* Priority Filter */}
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Priority
-              </label>
-              <select
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="ALL">All Priorities</option>
-                <option value="URGENT">Urgent</option>
-                <option value="HIGH">High</option>
-                <option value="NORMAL">Normal</option>
-                <option value="LOW">Low</option>
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Status
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="PENDING">02: RFI</option>
-                <option value="IN_PROGRESS">03: Info Sent to Lahore</option>
-                <option value="ON_HOLD">04: Missing Info/Chase Info</option>
-                <option value="AWAITING_APPROVAL">05: Info Completed</option>
-              </select>
-            </div>
-
-            {/* User Filter - NEW */}
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                <User className="w-3 h-3 inline mr-0.5" />
-                User
-              </label>
-              <select
-                value={userFilter}
-                onChange={(e) => setUserFilter(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="ALL">All Users</option>
-                {session?.user && (
-                  <option value={session.user.id} className="font-bold">
-                    🔵 My Jobs
-                  </option>
-                )}
-                <optgroup label="Staff">
-                  {allUsers.filter(u => u.role === 'STAFF').map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.name} {user.department && `(${user.department.name})`}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Supervisors">
-                  {allUsers.filter(u => u.role === 'SUPERVISOR').map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.name} {user.department && `(${user.department.name})`}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Managers">
-                  {allUsers.filter(u => u.role === 'MANAGER').map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.name} {user.department && `(${user.department.name})`}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="Admins">
-                  {allUsers.filter(u => u.role === 'ADMIN').map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
-                </optgroup>
-              </select>
-              {userFilter !== "ALL" && (() => {
-                const selectedUser = allUsers.find(u => u.id === userFilter);
-                return selectedUser ? (
-                  <p className="mt-0.5 text-[9px] text-gray-500 dark:text-gray-400">
-                    {selectedUser.role === 'STAFF' ? 'assigned to' : 
-                     selectedUser.role === 'SUPERVISOR' ? 'supervised by' : 
-                     'managed by'} {selectedUser.name}
-                  </p>
-                ) : null;
-              })()}
-            </div>
-
-            {/* Department Filter - NEW */}
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                <Building2 className="w-3 h-3 inline mr-0.5" />
-                Department
-              </label>
-              <select
-                value={departmentFilter}
-                onChange={(e) => setDepartmentFilter(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="ALL">All Departments</option>
-                {departments.map(dept => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Date Range Filter - NEW */}
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                <Calendar className="w-3 h-3 inline mr-0.5" />
-                Due Date
-              </label>
-              <select
-                value={dateRangeFilter}
-                onChange={(e) => setDateRangeFilter(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="ALL">All Dates</option>
-                <option value="TODAY">Due Today</option>
-                <option value="THIS_WEEK">Due This Week</option>
-                <option value="THIS_MONTH">Due This Month</option>
-                <option value="OVERDUE">Overdue</option>
-              </select>
-            </div>
-
-            {/* Month Filter - NEW */}
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                <Calendar className="w-3 h-3 inline mr-0.5" />
-                Filter by Month
-              </label>
-              <select
-                value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
-                className="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="ALL">All Months</option>
-                {availableMonths.map(({ key, label, count }) => (
-                  <option key={key} value={key}>
-                    {label} ({count})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Overdue Only Toggle - NEW */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                <AlertCircle className="w-3.5 h-3.5 inline mr-1" />
-                Show Only
-              </label>
-              <label className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750">
-                <input
-                  type="checkbox"
-                  checked={overdueFilter}
-                  onChange={(e) => setOverdueFilter(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-offset-gray-800"
-                />
-                <span className="text-sm text-gray-900 dark:text-white">Overdue Jobs</span>
-              </label>
-            </div>
-
-            {/* Sort By */}
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Sort By
-              </label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="createdAt">Created Date</option>
-                <option value="dueDate">Due Date</option>
-                <option value="jobId">Job ID</option>
-                <option value="clientName">Client Name</option>
-                <option value="title">Job Title</option>
-                <option value="priority">Priority</option>
-                <option value="status">Status</option>
-                <option value="assignedTo">Staff</option>
-                <option value="manager">Manager</option>
-                <option value="supervisor">Supervisor</option>
-              </select>
-            </div>
-
-            {/* Sort Order */}
-            <div>
-              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Order
-              </label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="asc">Ascending (A-Z, 0-9, Old-New)</option>
-                <option value="desc">Descending (Z-A, 9-0, New-Old)</option>
-              </select>
-            </div>
-          </div>
             </div>
           )}
         </div>
@@ -1161,38 +1123,128 @@ export default function JobsPage() {
                       className="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Job ID
+                  <th 
+                    className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleSort("jobId")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Job ID
+                      {sortBy === "jobId" && (
+                        sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                      )}
+                      {sortBy !== "jobId" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Client
+                  <th 
+                    className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleSort("clientName")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Client
+                      {sortBy === "clientName" && (
+                        sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                      )}
+                      {sortBy !== "clientName" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Job Title
+                  <th 
+                    className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleSort("title")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Job Title
+                      {sortBy === "title" && (
+                        sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                      )}
+                      {sortBy !== "title" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
                   </th>
                   <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
                     Service
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Priority
+                  <th 
+                    className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleSort("priority")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Priority
+                      {sortBy === "priority" && (
+                        sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                      )}
+                      {sortBy !== "priority" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Status
+                  <th 
+                    className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleSort("status")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Status
+                      {sortBy === "status" && (
+                        sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                      )}
+                      {sortBy !== "status" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Manager
+                  <th 
+                    className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleSort("manager")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Manager
+                      {sortBy === "manager" && (
+                        sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                      )}
+                      {sortBy !== "manager" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Supervisor
+                  <th 
+                    className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleSort("supervisor")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Supervisor
+                      {sortBy === "supervisor" && (
+                        sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                      )}
+                      {sortBy !== "supervisor" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Staff
+                  <th 
+                    className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleSort("assignedTo")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Staff
+                      {sortBy === "assignedTo" && (
+                        sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                      )}
+                      {sortBy !== "assignedTo" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Started
+                  <th 
+                    className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleSort("createdAt")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Started
+                      {sortBy === "createdAt" && (
+                        sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                      )}
+                      {sortBy !== "createdAt" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Due Date
+                  <th 
+                    className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    onClick={() => handleSort("dueDate")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Due Date
+                      {sortBy === "dueDate" && (
+                        sortOrder === "asc" ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />
+                      )}
+                      {sortBy !== "dueDate" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
                   </th>
                   <th className="px-2 py-1.5 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
                     <MessageSquare className="w-3.5 h-3.5 inline" />
