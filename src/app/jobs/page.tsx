@@ -1010,6 +1010,10 @@ export default function JobsPage() {
                     <option value="IN_PROGRESS">03: Info Sent to Lahore</option>
                     <option value="ON_HOLD">04: Missing Info/Chase Info</option>
                     <option value="AWAITING_APPROVAL">05: Info Completed</option>
+                    <option value="PENDING_COMPLETION">06: Sent to Jack for Review</option>
+                    {session && session.user.role !== "STAFF" && (
+                      <option value="COMPLETED">07: Completed</option>
+                    )}
                   </select>
                 )}
 
@@ -1054,7 +1058,10 @@ export default function JobsPage() {
                     New status: {bulkActionValue === "PENDING" ? "02: RFI" :
                                  bulkActionValue === "IN_PROGRESS" ? "03: Info Sent to Lahore" :
                                  bulkActionValue === "ON_HOLD" ? "04: Missing Info/Chase Info" :
-                                 "05: Info Completed"}
+                                 bulkActionValue === "AWAITING_APPROVAL" ? "05: Info Completed" :
+                                 bulkActionValue === "PENDING_COMPLETION" ? "06: Sent to Jack for Review" :
+                                 bulkActionValue === "COMPLETED" ? "07: Completed" :
+                                 bulkActionValue}
                   </span>
                 )}
                 {bulkAction === "priority" && bulkActionValue && (

@@ -219,6 +219,18 @@ export async function PATCH(
       fieldsChanged.push("tags")
     }
     if (status && status !== existingJob.status) {
+      // Permission check: STAFF cannot directly mark jobs as COMPLETED or CANCELLED
+      if (session.user.role === "STAFF") {
+        if (status === "COMPLETED" || status === "CANCELLED") {
+          return NextResponse.json(
+            { 
+              error: "Staff members cannot directly mark jobs as completed or cancelled. Please use 'Sent to Jack for Review' status to request completion approval from your supervisor or manager." 
+            },
+            { status: 403 }
+          )
+        }
+      }
+      
       updateData.status = status
       fieldsChanged.push("status")
     }

@@ -101,6 +101,16 @@ const STATUS_OPTIONS = [
   { value: "COMPLETED", label: "07: Completed" },
 ];
 
+// Helper function to get available status options based on user role
+const getAvailableStatusOptions = (userRole: string) => {
+  // STAFF cannot select COMPLETED or CANCELLED - they must request via PENDING_COMPLETION
+  if (userRole === "STAFF") {
+    return STATUS_OPTIONS.filter(opt => opt.value !== "COMPLETED");
+  }
+  // SUPERVISOR, MANAGER, and ADMIN can select all statuses
+  return STATUS_OPTIONS;
+};
+
 // Helper function to get status label
 const getStatusLabel = (statusValue: string): string => {
   return STATUS_OPTIONS.find(opt => opt.value === statusValue)?.label || statusValue.replace("_", " ");
@@ -600,12 +610,18 @@ export default function JobDetailPage() {
                 disabled={updatingStatus}
                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white disabled:opacity-50"
               >
-                {STATUS_OPTIONS.map((option) => (
+                {getAvailableStatusOptions(session?.user?.role || "STAFF").map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                 </option>
               ))}
             </select>
+            {session && session.user.role === "STAFF" && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                To complete a job, select "06: Sent to Jack for Review" to request supervisor/manager approval.
+              </p>
+            )}
           </div>            {/* Job Info */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
               <h3 className="font-bold text-gray-900 dark:text-white mb-3">
