@@ -619,7 +619,7 @@ export default function JobDetailPage() {
             {session && session.user.role === "STAFF" && (
               <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
-                To complete a job, select "06: Sent to Jack for Review" to request supervisor/manager approval.
+                To complete a job, select &ldquo;06: Sent to Jack for Review&rdquo; to request supervisor/manager approval.
               </p>
             )}
           </div>            {/* Job Info */}
