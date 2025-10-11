@@ -23,6 +23,9 @@ import {
   Calendar,
   AlertCircle,
   List,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { canCreateJobs } from "@/lib/permissions";
 import { formatTimeAgo } from "@/lib/utils";
@@ -181,6 +184,10 @@ export default function JobsPage() {
   const [bulkActionValue, setBulkActionValue] = useState<string>("");
   const [showBulkActionModal, setShowBulkActionModal] = useState(false);
   const [performingBulkAction, setPerformingBulkAction] = useState(false);
+
+  // Sorting
+  const [sortBy, setSortBy] = useState<string>("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     if (session) {
@@ -454,15 +461,78 @@ export default function JobsPage() {
            matchesUser && matchesDepartment && matchesOverdue && matchesDateRange && matchesMonth;
   });
 
+  // Sort filtered jobs
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    let comparison = 0;
+
+    switch (sortBy) {
+      case "jobId":
+        comparison = a.jobId.localeCompare(b.jobId);
+        break;
+      case "clientName":
+        comparison = a.clientName.localeCompare(b.clientName);
+        break;
+      case "title":
+        comparison = a.title.localeCompare(b.title);
+        break;
+      case "priority":
+        const priorityOrder = { URGENT: 0, HIGH: 1, NORMAL: 2, LOW: 3 };
+        comparison = (priorityOrder[a.priority as keyof typeof priorityOrder] || 2) - 
+                     (priorityOrder[b.priority as keyof typeof priorityOrder] || 2);
+        break;
+      case "status":
+        comparison = a.status.localeCompare(b.status);
+        break;
+      case "dueDate":
+        const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+        const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+        comparison = aDate - bDate;
+        break;
+      case "createdAt":
+        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        break;
+      case "assignedTo":
+        const aAssigned = a.assignedTo?.name || "Unassigned";
+        const bAssigned = b.assignedTo?.name || "Unassigned";
+        comparison = aAssigned.localeCompare(bAssigned);
+        break;
+      case "manager":
+        const aManager = a.manager?.name || "N/A";
+        const bManager = b.manager?.name || "N/A";
+        comparison = aManager.localeCompare(bManager);
+        break;
+      case "supervisor":
+        const aSupervisor = a.supervisor?.name || "N/A";
+        const bSupervisor = b.supervisor?.name || "N/A";
+        comparison = aSupervisor.localeCompare(bSupervisor);
+        break;
+      default:
+        comparison = 0;
+    }
+
+    return sortOrder === "asc" ? comparison : -comparison;
+  });
+
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      // Toggle sort order if clicking the same field
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      // Set new field and default to ascending
+      setSortBy(field);
+      setSortOrder("asc");
+    }
+  };
+
   // Get available months for filter dropdown based on start date
   const availableMonths = getAvailableMonths(jobs, 'startedAt');
 
   // Bulk action handlers
   const toggleSelectAll = () => {
-    if (selectedJobs.size === filteredJobs.length) {
+    if (selectedJobs.size === sortedJobs.length) {
       setSelectedJobs(new Set());
     } else {
-      setSelectedJobs(new Set(filteredJobs.map((j) => j.id)));
+      setSelectedJobs(new Set(sortedJobs.map((j) => j.id)));
     }
   };
 
@@ -547,7 +617,7 @@ export default function JobsPage() {
               Active Jobs
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">
-              {filteredJobs.length} of {jobs.length} {jobs.length === 1 ? "job" : "jobs"}
+              {sortedJobs.length} of {jobs.length} {jobs.length === 1 ? "job" : "jobs"}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -890,6 +960,44 @@ export default function JobsPage() {
                 <span className="text-sm text-gray-900 dark:text-white">Overdue Jobs</span>
               </label>
             </div>
+
+            {/* Sort By */}
+            <div>
+              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Sort By
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="createdAt">Created Date</option>
+                <option value="dueDate">Due Date</option>
+                <option value="jobId">Job ID</option>
+                <option value="clientName">Client Name</option>
+                <option value="title">Job Title</option>
+                <option value="priority">Priority</option>
+                <option value="status">Status</option>
+                <option value="assignedTo">Staff</option>
+                <option value="manager">Manager</option>
+                <option value="supervisor">Supervisor</option>
+              </select>
+            </div>
+
+            {/* Sort Order */}
+            <div>
+              <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Order
+              </label>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+                className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="asc">Ascending (A-Z, 0-9, Old-New)</option>
+                <option value="desc">Descending (Z-A, 9-0, New-Old)</option>
+              </select>
+            </div>
           </div>
             </div>
           )}
@@ -1021,7 +1129,7 @@ export default function JobsPage() {
         )}
 
         {/* Jobs Display - Monthly/Table/Grid Views */}
-        {filteredJobs.length === 0 ? (
+        {sortedJobs.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
             <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               {jobs.length === 0 ? "No jobs found" : "No jobs match your filters"}
@@ -1029,7 +1137,7 @@ export default function JobsPage() {
           </div>
         ) : viewMode === "monthly" ? (
           <MonthlyJobsView
-            jobs={filteredJobs}
+            jobs={sortedJobs}
             onJobClick={toggleExpand}
             expandedJobId={expandedJobId}
             timeline={timeline}
@@ -1048,7 +1156,7 @@ export default function JobsPage() {
                   <th className="px-2 py-1.5 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
                     <input
                       type="checkbox"
-                      checked={selectedJobs.size === filteredJobs.length && filteredJobs.length > 0}
+                      checked={selectedJobs.size === sortedJobs.length && sortedJobs.length > 0}
                       onChange={toggleSelectAll}
                       className="w-3.5 h-3.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
@@ -1095,7 +1203,7 @@ export default function JobsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
-                {filteredJobs.map((job) => (
+                {sortedJobs.map((job) => (
                   <Fragment key={job.id}>
                     {/* Main Row - Clickable */}
                     <tr
@@ -1418,7 +1526,7 @@ export default function JobsPage() {
             </table>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 p-4">
-              {filteredJobs.map((job) => (
+              {sortedJobs.map((job) => (
                 <div
                   key={job.id}
                   className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border ${
