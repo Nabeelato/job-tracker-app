@@ -202,30 +202,30 @@ export default function MonthlyJobsView({
         const monthLabel = getMonthLabelFromKey(monthKey);
 
         return (
-          <div key={monthKey} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+          <div key={monthKey} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700">
             {/* Month Header */}
             <button
               onClick={() => toggleMonth(monthKey)}
-              className="w-full px-6 py-4 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-750 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-gray-650 dark:hover:to-gray-700 transition-colors border-b-2 border-blue-200 dark:border-gray-600"
+              className="w-full px-3 py-2 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-750 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-gray-650 dark:hover:to-gray-700 transition-colors border-b border-blue-200 dark:border-gray-600"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-600 dark:bg-blue-500 rounded-lg">
-                  <Calendar className="w-5 h-5 text-white" />
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-600 dark:bg-blue-500 rounded-lg">
+                  <Calendar className="w-4 h-4 text-white" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-base font-semibold text-gray-900 dark:text-white">
                     {monthLabel}
                   </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     {monthJobs.length} {monthJobs.length === 1 ? "job" : "jobs"}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 {isExpanded ? (
-                  <ChevronUp className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                  <ChevronUp className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 ) : (
-                  <ChevronDown className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+                  <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 )}
               </div>
             </button>
@@ -234,10 +234,10 @@ export default function MonthlyJobsView({
             {isExpanded && (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-100 dark:bg-gray-700 border-b-2 border-gray-300 dark:border-gray-600">
+                  <thead className="bg-gray-100 dark:bg-gray-700 border-b border-gray-300 dark:border-gray-600">
                     <tr>
                       {showCheckboxes && (
-                        <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <th className="px-2 py-1.5 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                           <input
                             type="checkbox"
                             checked={monthJobs.every((job) => selectedJobs?.has(job.id))}
@@ -248,43 +248,43 @@ export default function MonthlyJobsView({
                           />
                         </th>
                       )}
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Job ID
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Client Name
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Job
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Service Types
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Priority
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         State
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Manager
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Supervisor
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Staff
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Created
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Due Date
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                        <MessageSquare className="w-4 h-4 inline" />
+                      <th className="px-2 py-1.5 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                        <MessageSquare className="w-3.5 h-3.5 inline" />
                       </th>
-                      <th className="px-4 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-2 py-1.5 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
@@ -299,7 +299,7 @@ export default function MonthlyJobsView({
                         >
                           {showCheckboxes && (
                             <td 
-                              className="px-4 py-3 text-center"
+                              className="px-2 py-1.5 text-center"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <input
@@ -310,16 +310,16 @@ export default function MonthlyJobsView({
                               />
                             </td>
                           )}
-                          <td className="px-4 py-3 text-sm font-mono font-medium text-gray-900 dark:text-white">
+                          <td className="px-2 py-1.5 text-xs font-mono font-medium text-gray-900 dark:text-white">
                             {job.jobId}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                          <td className="px-2 py-1.5 text-xs text-gray-900 dark:text-white">
                             {job.clientName}
                           </td>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                          <td className="px-2 py-1.5 text-xs font-medium text-gray-900 dark:text-white">
                             {job.title}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-2 py-1.5">
                             <div className="flex flex-wrap gap-1">
                               {job.serviceTypes && job.serviceTypes.length > 0 ? (
                                 job.serviceTypes.map((type) => (
@@ -330,15 +330,15 @@ export default function MonthlyJobsView({
                               )}
                             </div>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-2 py-1.5">
                             {getPriorityBadge(job.priority)}
                           </td>
-                          <td className="px-4 py-3 text-sm">
+                          <td className="px-2 py-1.5 text-xs">
                             <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(job.status)}`}>
                               {getStatusLabel(job.status)}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                          <td className="px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300">
                             {job.manager?.name ? (
                               <button
                                 onClick={(e) => {
@@ -351,7 +351,7 @@ export default function MonthlyJobsView({
                               </button>
                             ) : "N/A"}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                          <td className="px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300">
                             {job.supervisor?.name ? (
                               <button
                                 onClick={(e) => {
@@ -364,7 +364,7 @@ export default function MonthlyJobsView({
                               </button>
                             ) : "N/A"}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                          <td className="px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300">
                             {job.assignedTo?.name ? (
                               <button
                                 onClick={(e) => {
@@ -377,10 +377,10 @@ export default function MonthlyJobsView({
                               </button>
                             ) : "Unassigned"}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                          <td className="px-2 py-1.5 text-xs text-gray-600 dark:text-gray-400">
                             {new Date(job.createdAt).toLocaleDateString()}
                           </td>
-                          <td className="px-4 py-3 text-sm">
+                          <td className="px-2 py-1.5 text-xs">
                             {job.dueDate ? (() => {
                               const dueDate = new Date(job.dueDate);
                               const today = new Date();
@@ -406,14 +406,14 @@ export default function MonthlyJobsView({
                               <span className="text-gray-400 dark:text-gray-500">No due date</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-sm text-center text-gray-600 dark:text-gray-400">
+                          <td className="px-2 py-1.5 text-xs text-center text-gray-600 dark:text-gray-400">
                             {job._count.comments}
                           </td>
-                          <td className="px-4 py-3 text-sm text-center">
+                          <td className="px-2 py-1.5 text-xs text-center">
                             {expandedJobId === job.id ? (
-                              <ChevronUp className="w-5 h-5 text-gray-400 inline" />
+                              <ChevronUp className="w-4 h-4 text-gray-400 inline" />
                             ) : (
-                              <ChevronDown className="w-5 h-5 text-gray-400 inline" />
+                              <ChevronDown className="w-4 h-4 text-gray-400 inline" />
                             )}
                           </td>
                         </tr>
@@ -422,12 +422,12 @@ export default function MonthlyJobsView({
                         {expandedJobId === job.id && (
                           <tr>
                             <td colSpan={showCheckboxes ? 14 : 13} className="px-0 py-0">
-                              <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-750">
-                                <div className="mb-4">
+                              <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-750">
+                                <div className="mb-3">
                                   <Link
                                     href={`/jobs/${job.id}`}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm transition-colors inline-block"
+                                    className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs transition-colors inline-block"
                                   >
                                     View Full Details
                                   </Link>
@@ -437,20 +437,20 @@ export default function MonthlyJobsView({
                                 <div className="bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg p-5 border border-gray-200 dark:border-gray-700">
                                   <div className="flex items-center gap-2 mb-4">
                                     <div className="p-1.5 bg-blue-600 rounded-md">
-                                      <Clock className="w-4 h-4 text-white" />
+                                      <Clock className="w-3.5 h-3.5 text-white" />
                                     </div>
-                                    <h3 className="font-bold text-gray-900 dark:text-white">
+                                    <h3 className="font-semibold text-sm text-gray-900 dark:text-white">
                                       Timeline
                                     </h3>
                                   </div>
 
                                   {loadingTimeline[job.id] ? (
-                                    <div className="flex items-center gap-2 text-gray-500">
-                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    <div className="flex items-center gap-2 text-gray-500 text-xs">
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                       Loading timeline...
                                     </div>
                                   ) : timeline[job.id] && timeline[job.id].length > 0 ? (
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                       {timeline[job.id].map((event, idx) => {
                                         // Safety checks for event properties
                                         if (!event || !event.id) return null;
@@ -464,17 +464,17 @@ export default function MonthlyJobsView({
 
                                         return (
                                           <div key={event.id} className="relative">
-                                            <div className="flex gap-3">
+                                            <div className="flex gap-2">
                                               <div className="flex flex-col items-center">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-md ${iconBgClass}`}>
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm ${iconBgClass}`}>
                                                   {event.action === "COMMENT_ADDED" ? (
-                                                    <MessageSquare className="w-4 h-4 text-white" />
+                                                    <MessageSquare className="w-3 h-3 text-white" />
                                                   ) : event.action === "STAFF_ASSIGNED" ? (
-                                                    <User className="w-4 h-4 text-white" />
+                                                    <User className="w-3 h-3 text-white" />
                                                   ) : event.action === "COMPLETION_REQUESTED" ? (
-                                                    <CheckCircle className="w-4 h-4 text-white" />
+                                                    <CheckCircle className="w-3 h-3 text-white" />
                                                   ) : (
-                                                    <Clock className="w-4 h-4 text-white" />
+                                                    <Clock className="w-3 h-3 text-white" />
                                                   )}
                                                 </div>
                                                 {idx < timeline[job.id].length - 1 && (
@@ -484,22 +484,22 @@ export default function MonthlyJobsView({
 
                                               <div className="flex-1 pb-2">
                                                 {event.action === "COMMENT_ADDED" ? (
-                                                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3 border-l-4 border-blue-500">
-                                                    <div className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
+                                                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-2 border-l-2 border-blue-500">
+                                                    <div className="text-xs font-semibold text-gray-900 dark:text-white mb-1.5">
                                                       <span className="text-blue-600 dark:text-blue-400">{userName}</span> commented:
                                                     </div>
-                                                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-2.5">
-                                                      <div className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                                                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-2">
+                                                      <div className="text-xs text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
                                                         {event.newValue}
                                                       </div>
                                                     </div>
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1.5">
                                                       {formatTimeAgo(new Date(event.timestamp))}
                                                     </div>
                                                   </div>
                                                 ) : (
-                                                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-3">
-                                                    <div className="text-sm text-gray-900 dark:text-white">
+                                                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-2">
+                                                    <div className="text-xs text-gray-900 dark:text-white">
                                                       <span className="font-semibold">{userName}</span>
                                                       {" "}
                                                       {event.action === "JOB_CREATED" && "created this job"}
@@ -507,7 +507,7 @@ export default function MonthlyJobsView({
                                                       {event.action === "COMPLETION_REQUESTED" && "requested completion"}
                                                       {event.action === "STATUS_CHANGED" && `changed status to ${event.newValue ? getStatusLabel(event.newValue) : "N/A"}`}
                                                     </div>
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                                                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
                                                       {formatTimeAgo(new Date(event.timestamp))}
                                                     </div>
                                                   </div>
@@ -519,7 +519,7 @@ export default function MonthlyJobsView({
                                       })}
                                     </div>
                                   ) : (
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    <div className="text-xs text-gray-500 dark:text-gray-400">
                                       No timeline events yet
                                     </div>
                                   )}
