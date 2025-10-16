@@ -17,7 +17,6 @@ import {
   Play,
   AlertCircle
 } from "lucide-react";
-import Navbar from "@/components/navbar";
 import { formatTimeAgo } from "@/lib/utils";
 
 interface Task {
@@ -222,8 +221,6 @@ export default function DailyTasksPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
-      
       <main className="max-w-7xl mx-auto px-3 py-4">
         {/* Header */}
         <div className="mb-4">
