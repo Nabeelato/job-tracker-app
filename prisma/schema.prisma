@@ -144,6 +144,26 @@ model StatusUpdate {
   @@index([userId])
 }
 
+model Task {
+  id               String     @id
+  title            String
+  description      String?
+  clientName       String?
+  status           TaskStatus @default(PENDING)
+  userId           String
+  startedAt        DateTime?
+  completedAt      DateTime?
+  timeSpentMinutes Int?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime
+  User             User       @relation("UserTasks", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([clientName])
+}
+
 model User {
   id                                       String         @id
   name                                     String
@@ -164,6 +184,7 @@ model User {
   Job_Job_supervisorIdToUser               Job[]          @relation("Job_supervisorIdToUser")
   Notification                             Notification[]
   StatusUpdate                             StatusUpdate[]
+  Task                                     Task[]         @relation("UserTasks")
   Department_User_departmentIdToDepartment Department?    @relation("User_departmentIdToDepartment", fields: [departmentId], references: [id])
 
   @@index([departmentId])
@@ -217,6 +238,12 @@ enum ServiceType {
   VAT
   AUDIT
   FINANCIAL_STATEMENTS
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
 }
 
 enum UserRole {

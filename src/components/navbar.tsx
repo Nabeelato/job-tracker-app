@@ -18,6 +18,7 @@ import {
   Sun,
   FileSpreadsheet,
   LayoutDashboard,
+  CheckSquare,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import NotificationsDropdown from "./notifications-dropdown";
@@ -53,6 +54,12 @@ export default function Navbar() {
       name: "Jobs",
       href: "/jobs",
       icon: Briefcase,
+      show: true,
+    },
+    {
+      name: "Tasks",
+      href: "/tasks",
+      icon: CheckSquare,
       show: true,
     },
     {
