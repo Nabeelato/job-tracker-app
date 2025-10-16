@@ -50,7 +50,6 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // @ts-expect-error - Prisma client type not yet recognized by TS server
     const tasks = await prisma.task.findMany({
       where,
       include: {
@@ -116,7 +115,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // @ts-expect-error - Prisma client type not yet recognized by TS server
     const task = await prisma.task.create({
       data: {
         id: crypto.randomUUID(),

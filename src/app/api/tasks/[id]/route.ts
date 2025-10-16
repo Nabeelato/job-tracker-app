@@ -20,7 +20,6 @@ export async function PATCH(
     const { status, title, description, clientName } = body;
 
     // Get the task
-    // @ts-expect-error - Prisma client type not yet recognized by TS server
     const task = await prisma.task.findUnique({
       where: { id: params.id },
     });
@@ -82,7 +81,6 @@ export async function PATCH(
       updateData.clientName = clientName?.trim() || null;
     }
 
-    // @ts-expect-error - Prisma client type not yet recognized by TS server
     const updatedTask = await prisma.task.update({
       where: { id: params.id },
       data: updateData,
@@ -134,7 +132,6 @@ export async function DELETE(
       );
     }
 
-    // @ts-expect-error - Prisma client type not yet recognized by TS server
     const task = await prisma.task.findUnique({
       where: { id: params.id },
     });
@@ -143,7 +140,6 @@ export async function DELETE(
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
-    // @ts-expect-error - Prisma client type not yet recognized by TS server
     await prisma.task.delete({
       where: { id: params.id },
     });

@@ -24,15 +24,10 @@ export async function GET(request: NextRequest) {
     }
 
     const [total, pending, inProgress, completed, todayTotal, totalTimeSpent] = await Promise.all([
-      // @ts-expect-error - Prisma client type not yet recognized by TS server
       prisma.task.count({ where }),
-      // @ts-expect-error - Prisma client type not yet recognized by TS server
       prisma.task.count({ where: { ...where, status: "PENDING" } }),
-      // @ts-expect-error - Prisma client type not yet recognized by TS server
       prisma.task.count({ where: { ...where, status: "IN_PROGRESS" } }),
-      // @ts-expect-error - Prisma client type not yet recognized by TS server
       prisma.task.count({ where: { ...where, status: "COMPLETED" } }),
-      // @ts-expect-error - Prisma client type not yet recognized by TS server
       prisma.task.count({
         where: {
           ...where,
@@ -41,7 +36,6 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      // @ts-expect-error - Prisma client type not yet recognized by TS server
       prisma.task.aggregate({
         where: {
           ...where,
@@ -56,7 +50,6 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Get tasks per client
-    // @ts-expect-error - Prisma client type not yet recognized by TS server
     const tasksByClient = await prisma.task.groupBy({
       by: ["clientName"],
       where: {
@@ -77,7 +70,6 @@ export async function GET(request: NextRequest) {
     });
 
     // Get average time per task
-    // @ts-expect-error - Prisma client type not yet recognized by TS server
     const completedTasks = await prisma.task.findMany({
       where: {
         ...where,
