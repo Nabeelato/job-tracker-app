@@ -62,6 +62,18 @@ export async function POST(request: NextRequest) {
         // Map status from Excel to our system
         let mappedStatus = "PENDING";
         const statusMap: Record<string, string> = {
+          "02. RFI / EMAIL TO CLIENT SENT": "PENDING",
+          "02. RFI": "PENDING",
+          "03. INFO SENT TO LAHORE / JOB STARTED": "IN_PROGRESS",
+          "03. INFO SENT TO LAHORE": "IN_PROGRESS",
+          "04. MISSING INFO / CHASE CLIENT": "ON_HOLD",
+          "04. MISSING INFO": "ON_HOLD",
+          "05. LAHORE TO PROCEED / CLIENT INFO COMPLETE": "AWAITING_APPROVAL",
+          "05. LAHORE TO PROCEED": "AWAITING_APPROVAL",
+          "06. FOR REVIEW WITH JACK": "PENDING_COMPLETION",
+          "06. FOR REVIEW": "PENDING_COMPLETION",
+          "07. COMPLETED": "COMPLETED",
+          "COMPLETED": "COMPLETED",
           "PENDING": "PENDING",
           "IN PROGRESS": "IN_PROGRESS",
           "IN_PROGRESS": "IN_PROGRESS",
@@ -71,7 +83,6 @@ export async function POST(request: NextRequest) {
           "AWAITING_APPROVAL": "AWAITING_APPROVAL",
           "PENDING COMPLETION": "PENDING_COMPLETION",
           "PENDING_COMPLETION": "PENDING_COMPLETION",
-          "COMPLETED": "COMPLETED",
           "CANCELLED": "CANCELLED",
         };
         if (statusMap[status]) {
@@ -157,7 +168,7 @@ export async function POST(request: NextRequest) {
             dueDate: null,
             createdAt: new Date(),
             updatedAt: new Date(),
-            startedAt: new Date(),
+            startedAt: null,
             lastActivityAt: new Date(),
           },
         });

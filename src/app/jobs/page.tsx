@@ -28,6 +28,7 @@ import {
   ArrowDown,
   Mail,
   MailCheck,
+  UserPlus,
 } from "lucide-react";
 import { canCreateJobs } from "@/lib/permissions";
 import { formatTimeAgo } from "@/lib/utils";
@@ -205,6 +206,11 @@ export default function JobsPage() {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [importResults, setImportResults] = useState<any>(null);
+
+  // Reassign modal
+  const [reassignModal, setReassignModal] = useState<{ jobId: string; currentAssignee: string } | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState<string>("");
+  const [reassigning, setReassigning] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -645,6 +651,31 @@ export default function JobsPage() {
       setImportResults({ error: "Failed to import jobs" });
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handleReassignJob = async () => {
+    if (!reassignModal || !selectedStaffId) return;
+
+    setReassigning(true);
+    try {
+      const response = await fetch(`/api/jobs/${reassignModal.jobId}/assign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignedToId: selectedStaffId }),
+      });
+
+      if (response.ok) {
+        fetchJobs();
+        setReassignModal(null);
+        setSelectedStaffId("");
+      } else {
+        console.error("Failed to reassign job");
+      }
+    } catch (error) {
+      console.error("Error reassigning job:", error);
+    } finally {
+      setReassigning(false);
     }
   };
 
@@ -1594,6 +1625,26 @@ export default function JobsPage() {
                                 Comment
                               </button>
 
+                              {/* Reassign Button - Only for Admins and Managers */}
+                              {(session?.user.role === "ADMIN" || session?.user.role === "MANAGER") && 
+                               job.status !== "COMPLETED" && job.status !== "CANCELLED" && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setReassignModal({ 
+                                      jobId: job.id, 
+                                      currentAssignee: job.assignedTo?.name || "Unassigned" 
+                                    });
+                                    setSelectedStaffId(job.assignedTo?.id || "");
+                                  }}
+                                  className="px-3 py-1 bg-purple-600 text-white rounded text-sm hover:bg-purple-700 flex items-center gap-1"
+                                  title="Reassign job"
+                                >
+                                  <UserPlus className="w-3.5 h-3.5" />
+                                  Reassign
+                                </button>
+                              )}
+
                               {/* Client Reply Status Buttons */}
                               {job.status !== "COMPLETED" && job.status !== "CANCELLED" && (
                                 <>
@@ -2118,6 +2169,61 @@ export default function JobsPage() {
                 className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reassign Modal */}
+      {reassignModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Reassign Job
+            </h3>
+            
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Currently assigned to: <span className="font-medium text-gray-900 dark:text-white">{reassignModal.currentAssignee}</span>
+            </p>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Select Staff Member
+              </label>
+              <select
+                value={selectedStaffId}
+                onChange={(e) => setSelectedStaffId(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="">Select a staff member...</option>
+                {allUsers
+                  .filter(u => u.role === "STAFF")
+                  .map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.name} ({user.email})
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleReassignJob}
+                disabled={!selectedStaffId || reassigning}
+                className="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {reassigning ? "Reassigning..." : "Reassign Job"}
+              </button>
+              <button
+                onClick={() => {
+                  setReassignModal(null);
+                  setSelectedStaffId("");
+                }}
+                disabled={reassigning}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
               </button>
             </div>
           </div>
