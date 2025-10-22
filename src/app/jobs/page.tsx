@@ -193,7 +193,7 @@ export default function JobsPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   // Comment modal
-  const [commentModal, setCommentModal] = useState<{ jobId: string; jobTitle: string } | null>(null);
+  const [commentModal, setCommentModal] = useState<{ jobId: string; clientName: string; jobTitle: string } | null>(null);
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
 
@@ -1509,7 +1509,7 @@ export default function JobsPage() {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setCommentModal({ jobId: job.id, jobTitle: job.title });
+                                  setCommentModal({ jobId: job.id, clientName: job.clientName, jobTitle: job.title });
                                 }}
                                 className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
                               >
@@ -1886,9 +1886,14 @@ export default function JobsPage() {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               Add Comment
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              {commentModal.jobTitle}
-            </p>
+            <div className="mb-4">
+              <p className="text-base font-medium text-gray-800 dark:text-gray-200">
+                {commentModal.clientName}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {commentModal.jobTitle}
+              </p>
+            </div>
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
