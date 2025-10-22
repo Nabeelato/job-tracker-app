@@ -189,6 +189,11 @@ export default function JobsPage() {
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
+  // Comment modal
+  const [commentModal, setCommentModal] = useState<{ jobId: string; jobTitle: string } | null>(null);
+  const [newComment, setNewComment] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
+
   useEffect(() => {
     if (session) {
       fetchJobs();
@@ -544,6 +549,32 @@ export default function JobsPage() {
       newSelected.add(jobId);
     }
     setSelectedJobs(newSelected);
+  };
+
+  const handleAddComment = async () => {
+    if (!commentModal || !newComment.trim()) return;
+
+    setSubmittingComment(true);
+    try {
+      const response = await fetch(`/api/jobs/${commentModal.jobId}/comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newComment }),
+      });
+
+      if (response.ok) {
+        setCommentModal(null);
+        setNewComment("");
+        fetchJobs(); // Refresh to show new comment in timeline
+      } else {
+        alert("Failed to add comment");
+      }
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      alert("Failed to add comment");
+    } finally {
+      setSubmittingComment(false);
+    }
   };
 
   const handleBulkAction = async () => {
@@ -1472,6 +1503,17 @@ export default function JobsPage() {
                                 </button>
                               )}
 
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setCommentModal({ jobId: job.id, jobTitle: job.title });
+                                }}
+                                className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                              >
+                                <MessageSquare className="w-3.5 h-3.5" />
+                                Comment
+                              </button>
+
                               <Link
                                 href={`/jobs/${job.id}`}
                                 onClick={(e) => e.stopPropagation()}
@@ -1776,19 +1818,31 @@ export default function JobsPage() {
                                 className="bg-white dark:bg-gray-800 p-3 rounded"
                               >
                                 <div className="flex justify-between items-start mb-1">
-                                  <span className="text-sm font-medium">
-                                    {event.action}
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    {event.type === "comment" ? (
+                                      <MessageSquare className="w-4 h-4 text-blue-500" />
+                                    ) : (
+                                      <Clock className="w-4 h-4 text-gray-400" />
+                                    )}
+                                    <span className="text-sm font-medium">
+                                      {event.type === "comment" ? "Comment" : event.action}
+                                    </span>
+                                  </div>
                                   <span className="text-xs text-gray-500">
                                     {new Date(event.createdAt).toLocaleString()}
                                   </span>
                                 </div>
+                                {event.type === "comment" && event.content && (
+                                  <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 pl-6">
+                                    {event.content}
+                                  </p>
+                                )}
                                 {event.details && (
-                                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                                  <p className="text-sm text-gray-600 dark:text-gray-300 pl-6">
                                     {event.details}
                                   </p>
                                 )}
-                                <div className="text-xs text-gray-500 mt-1">
+                                <div className="text-xs text-gray-500 mt-1 pl-6">
                                   by {userName}
                                 </div>
                               </div>
@@ -1821,6 +1875,47 @@ export default function JobsPage() {
           </div>
         )}
       </div>
+
+      {/* Comment Modal */}
+      {commentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Add Comment
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              {commentModal.jobTitle}
+            </p>
+            <textarea
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="Enter your comment..."
+              rows={4}
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              autoFocus
+            />
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={handleAddComment}
+                disabled={!newComment.trim() || submittingComment}
+                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {submittingComment ? "Adding..." : "Add Comment"}
+              </button>
+              <button
+                onClick={() => {
+                  setCommentModal(null);
+                  setNewComment("");
+                }}
+                disabled={submittingComment}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

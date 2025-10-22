@@ -16,32 +16,66 @@ export async function GET(
 
     const jobId = params.id
 
-    // Get all status updates for the job (which includes timeline events)
-    const timeline = await prisma.statusUpdate.findMany({
-      where: {
-        jobId,
-      },
-      include: {
-        User: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
+    // Get status updates and comments for the job
+    const [statusUpdates, comments] = await Promise.all([
+      prisma.statusUpdate.findMany({
+        where: { jobId },
+        include: {
+          User: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+            },
           },
         },
-      },
-      orderBy: {
-        timestamp: "asc",
-      },
-    })
+        orderBy: { timestamp: "desc" },
+      }),
+      prisma.comment.findMany({
+        where: { jobId },
+        include: {
+          User: {
+            select: {
+              id: true,
+              name: true,
+              avatar: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+    ])
 
-    // Map User to user for frontend compatibility and handle null users
-    const formattedTimeline = timeline.map((event) => ({
-      ...event,
-      user: event.User || { id: 'unknown', name: 'Unknown User', avatar: null },
+    // Format status updates
+    const formattedStatusUpdates = statusUpdates.map((update) => ({
+      id: update.id,
+      type: "status_update" as const,
+      action: update.action,
+      oldValue: update.oldValue,
+      newValue: update.newValue,
+      comment: update.comment,
+      timestamp: update.timestamp,
+      createdAt: update.timestamp,
+      user: update.User || { id: 'unknown', name: 'Unknown User', avatar: null },
     }))
 
-    return NextResponse.json(formattedTimeline)
+    // Format comments
+    const formattedComments = comments.map((comment) => ({
+      id: comment.id,
+      type: "comment" as const,
+      action: "COMMENT_ADDED",
+      content: comment.content,
+      timestamp: comment.createdAt,
+      createdAt: comment.createdAt,
+      user: comment.User || { id: 'unknown', name: 'Unknown User', avatar: null },
+    }))
+
+    // Merge and sort by date (newest first)
+    const timeline = [...formattedStatusUpdates, ...formattedComments].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+
+    return NextResponse.json(timeline)
   } catch (error) {
     console.error("Error fetching timeline:", error)
     return NextResponse.json(
