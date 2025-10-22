@@ -199,6 +199,12 @@ export default function JobsPage() {
   const [commentModal, setCommentModal] = useState<{ jobId: string; clientName: string; jobTitle: string } | null>(null);
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
+  
+  // Import modal
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importResults, setImportResults] = useState<any>(null);
 
   useEffect(() => {
     if (session) {
@@ -612,6 +618,36 @@ export default function JobsPage() {
     }
   };
 
+  const handleImportJobs = async () => {
+    if (!importFile) return;
+
+    setImporting(true);
+    setImportResults(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", importFile);
+
+      const response = await fetch("/api/jobs/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      setImportResults(data);
+      
+      if (response.ok) {
+        fetchJobs(); // Refresh jobs list
+        setImportFile(null);
+      }
+    } catch (error) {
+      console.error("Error importing jobs:", error);
+      setImportResults({ error: "Failed to import jobs" });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const handleBulkAction = async () => {
     if (!bulkAction || selectedJobs.size === 0) return;
 
@@ -746,13 +782,22 @@ export default function JobsPage() {
               Cancelled
             </Link>
             {session && canCreateJobs(session.user.role) && (
-              <Link
-                href="/jobs/new"
-                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1.5 text-sm"
-              >
-                <Plus className="w-4 h-4" />
-                Create Job
-              </Link>
+              <>
+                <button
+                  onClick={() => setShowImportModal(true)}
+                  className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-1.5 text-sm"
+                >
+                  <ArrowUpDown className="w-4 h-4" />
+                  Import Excel
+                </button>
+                <Link
+                  href="/jobs/new"
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-1.5 text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Job
+                </Link>
+              </>
             )}
           </div>
         </div>
@@ -1992,6 +2037,86 @@ export default function JobsPage() {
                 className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Import Jobs from Excel
+            </h3>
+            
+            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">Excel Format:</h4>
+              <p className="text-xs text-blue-800 dark:text-blue-300 mb-2">Your Excel file should have these columns:</p>
+              <ul className="text-xs text-blue-800 dark:text-blue-300 space-y-1 list-disc list-inside">
+                <li><strong>Client Name</strong> (required) - Name of the client</li>
+                <li><strong>Job Title</strong> (required) - Title of the job</li>
+                <li><strong>Description</strong> (optional) - Job description</li>
+                <li><strong>Priority</strong> (optional) - LOW, NORMAL, HIGH, or URGENT</li>
+                <li><strong>Service Types</strong> (optional) - Comma-separated: BOOKKEEPING, VAT, CESSATION_OF_ACCOUNT, FINANCIAL_STATEMENTS</li>
+                <li><strong>Assigned To</strong> (required) - Email of staff member</li>
+                <li><strong>Manager</strong> (optional) - Email of manager</li>
+                <li><strong>Due Date</strong> (optional) - Date in format: YYYY-MM-DD or MM/DD/YYYY</li>
+              </ul>
+            </div>
+
+            <div className="mb-4">
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+
+            {importResults && (
+              <div className={`mb-4 p-4 rounded-lg ${
+                importResults.error 
+                  ? "bg-red-50 dark:bg-red-900/20" 
+                  : "bg-green-50 dark:bg-green-900/20"
+              }`}>
+                <p className={`text-sm font-medium ${
+                  importResults.error 
+                    ? "text-red-900 dark:text-red-200" 
+                    : "text-green-900 dark:text-green-200"
+                }`}>
+                  {importResults.error || importResults.message}
+                </p>
+                {importResults.results && importResults.results.errors.length > 0 && (
+                  <div className="mt-2 max-h-40 overflow-y-auto">
+                    <p className="text-xs font-semibold text-red-800 dark:text-red-300 mb-1">Errors:</p>
+                    {importResults.results.errors.map((err: string, idx: number) => (
+                      <p key={idx} className="text-xs text-red-700 dark:text-red-400">• {err}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleImportJobs}
+                disabled={!importFile || importing}
+                className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {importing ? "Importing..." : "Import Jobs"}
+              </button>
+              <button
+                onClick={() => {
+                  setShowImportModal(false);
+                  setImportFile(null);
+                  setImportResults(null);
+                }}
+                disabled={importing}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>
