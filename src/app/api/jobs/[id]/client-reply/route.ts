@@ -40,7 +40,7 @@ export async function POST(
         jobId: params.id,
         userId: session.user.id,
         action: action === "awaiting" ? "AWAITING_CLIENT_REPLY" : "CLIENT_REPLY_RECEIVED",
-        oldValue: job.awaitingClientReply ? "Awaiting Reply" : "Normal",
+        oldValue: (job.awaitingClientReply ?? false) ? "Awaiting Reply" : "Normal",
         newValue: action === "awaiting" ? "Awaiting Reply" : "Reply Received",
         timestamp: new Date(),
       },
