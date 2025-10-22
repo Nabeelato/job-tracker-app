@@ -2077,7 +2077,7 @@ export default function JobsPage() {
                 <li><strong>[Client] Client</strong> (required) - Name of the client</li>
                 <li><strong>[Job] Name</strong> (required) - Title of the job</li>
                 <li><strong>Priority</strong> (optional) - Any priority text (imported as-is, e.g., LOW, HIGH, URGENT)</li>
-                <li><strong>[State] State</strong> (optional) - Status like "02. RFI", "03. Info sent to Lahore", etc. (default: 02. RFI)</li>
+                <li><strong>[State] State</strong> (optional) - Status like &quot;02. RFI&quot;, &quot;03. Info sent to Lahore&quot;, etc. (default: 02. RFI)</li>
                 <li><strong>[Job] Manager</strong> (optional) - Name of the manager (will match by name)</li>
               </ul>
               <p className="text-xs text-blue-700 dark:text-blue-400 mt-2 italic">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { 
   PlusCircle, 
@@ -71,15 +71,7 @@ export default function DailyTasksPage() {
   const isManager = session?.user?.role === "MANAGER";
   const canDelete = isAdmin || isManager;
 
-  useEffect(() => {
-    fetchTasks();
-    fetchStats();
-    if (canDelete) {
-      fetchUsers();
-    }
-  }, [filterStatus, filterDate, filterClient, selectedUser, viewingUserHistory]);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -103,9 +95,9 @@ export default function DailyTasksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, filterDate, filterClient, selectedUser, viewingUserHistory, canDelete]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (selectedUser) params.append("userId", selectedUser);
@@ -119,7 +111,15 @@ export default function DailyTasksPage() {
     } catch (error) {
       console.error("Error fetching stats:", error);
     }
-  };
+  }, [selectedUser, viewingUserHistory]);
+
+  useEffect(() => {
+    fetchTasks();
+    fetchStats();
+    if (canDelete) {
+      fetchUsers();
+    }
+  }, [fetchTasks, fetchStats, canDelete]);
 
   const fetchUsers = async () => {
     try {
