@@ -334,14 +334,12 @@ export default function JobsPage() {
       if (response.ok) {
         fetchJobs();
         await refreshTimeline(jobId); // Refresh timeline immediately
-        alert("Completion request submitted!");
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to request completion");
+        console.error("Failed to request completion:", data.error);
       }
     } catch (error) {
       console.error("Error requesting completion:", error);
-      alert("Failed to request completion");
     }
   };
 
@@ -356,17 +354,12 @@ export default function JobsPage() {
       if (response.ok) {
         fetchJobs();
         await refreshTimeline(jobId); // Refresh timeline immediately
-        const message = action === "awaiting" 
-          ? "Job marked as awaiting client reply" 
-          : "Client reply received - job back to normal status";
-        alert(message);
       } else {
         const data = await response.json();
-        alert(data.error || "Failed to update client reply status");
+        console.error("Failed to update client reply status:", data.error);
       }
     } catch (error) {
       console.error("Error updating client reply status:", error);
-      alert("Failed to update client reply status");
     }
   };
 
@@ -610,11 +603,10 @@ export default function JobsPage() {
         fetchJobs(); // Refresh jobs list
         await refreshTimeline(jobId); // Refresh timeline immediately
       } else {
-        alert("Failed to add comment");
+        console.error("Failed to add comment");
       }
     } catch (error) {
       console.error("Error adding comment:", error);
-      alert("Failed to add comment");
     } finally {
       setSubmittingComment(false);
     }
