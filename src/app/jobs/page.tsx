@@ -2053,17 +2053,18 @@ export default function JobsPage() {
             
             <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">Excel Format:</h4>
-              <p className="text-xs text-blue-800 dark:text-blue-300 mb-2">Your Excel file should have these columns:</p>
+              <p className="text-xs text-blue-800 dark:text-blue-300 mb-2">Your Excel file should have these columns (exact names):</p>
               <ul className="text-xs text-blue-800 dark:text-blue-300 space-y-1 list-disc list-inside">
-                <li><strong>Client Name</strong> (required) - Name of the client</li>
-                <li><strong>Job Title</strong> (required) - Title of the job</li>
-                <li><strong>Description</strong> (optional) - Job description</li>
-                <li><strong>Priority</strong> (optional) - LOW, NORMAL, HIGH, or URGENT</li>
-                <li><strong>Service Types</strong> (optional) - Comma-separated: BOOKKEEPING, VAT, CESSATION_OF_ACCOUNT, FINANCIAL_STATEMENTS</li>
-                <li><strong>Assigned To</strong> (required) - Email of staff member</li>
-                <li><strong>Manager</strong> (optional) - Email of manager</li>
-                <li><strong>Due Date</strong> (optional) - Date in format: YYYY-MM-DD or MM/DD/YYYY</li>
+                <li><strong>[Job] Job No.</strong> (optional) - Job ID (e.g., JOB-0001). If empty, will auto-generate.</li>
+                <li><strong>[Client] Client</strong> (required) - Name of the client</li>
+                <li><strong>[Job] Name</strong> (required) - Title of the job</li>
+                <li><strong>Priority</strong> (optional) - LOW, NORMAL, HIGH, or URGENT (default: NORMAL)</li>
+                <li><strong>[State] State</strong> (optional) - PENDING, IN PROGRESS, ON HOLD, COMPLETED, etc. (default: PENDING)</li>
+                <li><strong>[Job] Manager</strong> (optional) - Name of the manager (will match by name)</li>
               </ul>
+              <p className="text-xs text-blue-700 dark:text-blue-400 mt-2 italic">
+                Note: Jobs will be assigned to available staff members. Manager is matched by name.
+              </p>
             </div>
 
             <div className="mb-4">

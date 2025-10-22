@@ -45,15 +45,13 @@ export async function POST(request: NextRequest) {
       const row: any = data[i];
       
       try {
-        // Expected columns: Client Name, Job Title, Description, Priority, Service Types, Assigned To, Manager, Due Date
-        const clientName = row["Client Name"] || row["client_name"] || row["clientName"];
-        const title = row["Job Title"] || row["title"] || row["job_title"];
-        const description = row["Description"] || row["description"] || "";
-        const priority = (row["Priority"] || row["priority"] || "NORMAL").toUpperCase();
-        const serviceTypesStr = row["Service Types"] || row["service_types"] || row["serviceTypes"] || "";
-        const assignedToEmail = row["Assigned To"] || row["assigned_to"] || row["assignedTo"];
-        const managerEmail = row["Manager"] || row["manager"];
-        const dueDateStr = row["Due Date"] || row["due_date"] || row["dueDate"];
+        // Excel columns from user's format
+        const jobNo = row["[Job] Job No."] || row["Job No."] || row["Job No"] || "";
+        const clientName = row["[Client] Client"] || row["Client"] || "";
+        const title = row["[Job] Name"] || row["Name"] || row["Job Name"] || "";
+        const priority = (row["Priority"] || "NORMAL").toString().toUpperCase();
+        const status = (row["[State] State"] || row["State"] || "PENDING").toString().toUpperCase();
+        const managerName = row["[Job] Manager"] || row["Manager"] || "";
 
         if (!clientName || !title) {
           results.failed++;
@@ -61,26 +59,40 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Find assigned user by email
-        const assignedUser = await prisma.user.findFirst({
-          where: { 
-            email: assignedToEmail,
-            role: "STAFF"
-          },
-        });
-
-        if (!assignedUser) {
-          results.failed++;
-          results.errors.push(`Row ${i + 2}: Staff member not found with email: ${assignedToEmail}`);
-          continue;
+        // Map status from Excel to our system
+        let mappedStatus = "PENDING";
+        const statusMap: Record<string, string> = {
+          "PENDING": "PENDING",
+          "IN PROGRESS": "IN_PROGRESS",
+          "IN_PROGRESS": "IN_PROGRESS",
+          "ON HOLD": "ON_HOLD",
+          "ON_HOLD": "ON_HOLD",
+          "AWAITING APPROVAL": "AWAITING_APPROVAL",
+          "AWAITING_APPROVAL": "AWAITING_APPROVAL",
+          "PENDING COMPLETION": "PENDING_COMPLETION",
+          "PENDING_COMPLETION": "PENDING_COMPLETION",
+          "COMPLETED": "COMPLETED",
+          "CANCELLED": "CANCELLED",
+        };
+        if (statusMap[status]) {
+          mappedStatus = statusMap[status];
         }
 
-        // Find manager by email (optional)
+        // Map priority
+        let mappedPriority = "NORMAL";
+        if (["LOW", "NORMAL", "HIGH", "URGENT"].includes(priority)) {
+          mappedPriority = priority;
+        }
+
+        // Find manager by name
         let manager = null;
-        if (managerEmail) {
+        if (managerName) {
           manager = await prisma.user.findFirst({
             where: { 
-              email: managerEmail,
+              name: {
+                contains: managerName,
+                mode: "insensitive"
+              },
               role: { in: ["MANAGER", "ADMIN"] }
             },
           });
@@ -106,48 +118,43 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Parse service types
-        const serviceTypes: string[] = [];
-        if (serviceTypesStr) {
-          const types = serviceTypesStr.split(",").map((t: string) => t.trim().toUpperCase());
-          for (const type of types) {
-            if (["BOOKKEEPING", "VAT", "CESSATION_OF_ACCOUNT", "FINANCIAL_STATEMENTS"].includes(type)) {
-              serviceTypes.push(type);
-            }
-          }
-        }
-
-        // Parse due date
-        let dueDate = null;
-        if (dueDateStr) {
-          const parsed = new Date(dueDateStr);
-          if (!isNaN(parsed.getTime())) {
-            dueDate = parsed;
-          }
-        }
-
-        // Generate job ID
-        const lastJob = await prisma.job.findFirst({
-          orderBy: { jobId: "desc" },
+        // For now, assign to the importing user or first available staff
+        // You can enhance this to match by name if needed
+        let assignedUser = await prisma.user.findFirst({
+          where: { role: "STAFF" }
         });
-        const lastJobNumber = lastJob?.jobId ? parseInt(lastJob.jobId.split("-")[1]) : 0;
-        const newJobId = `JOB-${String(lastJobNumber + 1).padStart(4, "0")}`;
+
+        if (!assignedUser) {
+          results.failed++;
+          results.errors.push(`Row ${i + 2}: No staff member available to assign`);
+          continue;
+        }
+
+        // Use provided Job No or generate new one
+        let finalJobId = jobNo;
+        if (!finalJobId) {
+          const lastJob = await prisma.job.findFirst({
+            orderBy: { jobId: "desc" },
+          });
+          const lastJobNumber = lastJob?.jobId ? parseInt(lastJob.jobId.split("-")[1]) : 0;
+          finalJobId = `JOB-${String(lastJobNumber + 1).padStart(4, "0")}`;
+        }
 
         // Create the job
         await prisma.job.create({
           data: {
             id: crypto.randomUUID(),
-            jobId: newJobId,
+            jobId: finalJobId,
             clientName,
             title,
-            description: description || null,
-            status: "PENDING",
-            priority: priority as any,
-            serviceTypes: serviceTypes as any,
+            description: null,
+            status: mappedStatus as any,
+            priority: mappedPriority as any,
+            serviceTypes: [],
             assignedToId: assignedUser.id,
             assignedById: session.user.id,
             managerId: manager.id,
-            dueDate,
+            dueDate: null,
             createdAt: new Date(),
             updatedAt: new Date(),
             startedAt: new Date(),
@@ -159,7 +166,7 @@ export async function POST(request: NextRequest) {
         await prisma.statusUpdate.create({
           data: {
             id: crypto.randomUUID(),
-            jobId: newJobId,
+            jobId: finalJobId,
             userId: session.user.id,
             action: "JOB_CREATED",
             timestamp: new Date(),

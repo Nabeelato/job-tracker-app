@@ -12,35 +12,39 @@ You can now bulk import jobs from an Excel file (.xlsx or .xls). This is perfect
 2. **Prepare Your Excel File**
    - Create an Excel file with the following columns (column names are case-insensitive):
 
-### Required Columns
-- **Client Name** - The name of the client
-- **Job Title** - The title/description of the job
-- **Assigned To** - Email address of the staff member (must exist in system with STAFF role)
+### Required Columns (exact column names)
+- **[Client] Client** - The name of the client
+- **[Job] Name** - The title/description of the job
 
-### Optional Columns
-- **Description** - Detailed job description
+### Optional Columns (exact column names)
+- **[Job] Job No.** - Job ID (e.g., JOB-0001, JOB-0002)
+  - If provided, uses this exact ID
+  - If empty/missing, automatically generates the next available ID
 - **Priority** - Must be one of: LOW, NORMAL, HIGH, URGENT (default: NORMAL)
-- **Service Types** - Comma-separated list of services:
-  - BOOKKEEPING
-  - VAT
-  - CESSATION_OF_ACCOUNT
-  - FINANCIAL_STATEMENTS
-  - Example: `BOOKKEEPING, VAT`
-- **Manager** - Email address of the manager (must have MANAGER or ADMIN role)
+- **[State] State** - Job status. Accepted values:
+  - PENDING
+  - IN PROGRESS (or IN_PROGRESS)
+  - ON HOLD (or ON_HOLD)
+  - AWAITING APPROVAL (or AWAITING_APPROVAL)
+  - PENDING COMPLETION (or PENDING_COMPLETION)
+  - COMPLETED
+  - CANCELLED
+  - Default: PENDING if not specified
+- **[Job] Manager** - Name of the manager (not email)
+  - System will search for manager by name (case-insensitive partial match)
   - If not provided, uses the importing user (if they're a manager)
   - If still not found, assigns any available manager
-- **Due Date** - Date in formats:
-  - YYYY-MM-DD (e.g., 2025-12-31)
-  - MM/DD/YYYY (e.g., 12/31/2025)
-  - Excel date format will also work
+
+**Note:** Jobs are automatically assigned to available staff members.
 
 ## Excel Template Example
 
-| Client Name | Job Title | Description | Priority | Service Types | Assigned To | Manager | Due Date |
-|-------------|-----------|-------------|----------|---------------|-------------|---------|----------|
-| ABC Corp | Annual Accounts | Prepare annual accounts for 2024 | HIGH | BOOKKEEPING,FINANCIAL_STATEMENTS | staff@example.com | manager@example.com | 2025-12-31 |
-| XYZ Ltd | VAT Return Q4 | Quarterly VAT return | NORMAL | VAT | staff2@example.com | manager@example.com | 2025-11-15 |
-| Smith & Co | Bookkeeping | Monthly bookkeeping | LOW | BOOKKEEPING | staff@example.com | | 2025-10-30 |
+| [Job] Job No. | [Client] Client | [Job] Name | Priority | [State] State | [Job] Manager |
+|---------------|-----------------|------------|----------|---------------|---------------|
+| JOB-0001 | ABC Corp | Annual Accounts 2024 | HIGH | IN PROGRESS | John Smith |
+| JOB-0002 | XYZ Ltd | VAT Return Q4 | NORMAL | PENDING | John Smith |
+| | Smith & Co | Monthly Bookkeeping | LOW | PENDING | Sarah Jones |
+| JOB-0010 | Tech Solutions | Year End Accounts | URGENT | AWAITING APPROVAL | John Smith |
 
 ## Import Process
 
@@ -54,23 +58,25 @@ You can now bulk import jobs from an Excel file (.xlsx or .xls). This is perfect
 
 ## Important Notes
 
-- **Job IDs** are automatically generated (JOB-0001, JOB-0002, etc.)
-- **Status** is set to PENDING for all imported jobs
+- **Job IDs**: Can be provided in Excel or auto-generated
+  - If `[Job] Job No.` is empty, system generates next available ID (JOB-0001, JOB-0002, etc.)
+  - If provided, uses the exact ID from Excel
+- **Status**: Uses the value from `[State] State` column or defaults to PENDING
 - **Started At** and **Last Activity At** are set to the import time
 - **Timeline** entries are created for each job
-- If staff member or manager email is not found, that row will fail
+- **Manager**: Matched by name (case-insensitive, partial match allowed)
+- **Staff Assignment**: Jobs are automatically assigned to available staff members
 - Failed rows don't stop the import - other rows continue processing
 - All errors are reported at the end
 
 ## Error Handling
 
 Common errors:
-- "Missing client name or job title" - Required fields are empty
-- "Staff member not found with email: xxx" - Email doesn't exist or user is not STAFF role
-- "No manager found" - Could not find any manager for the job
+- "Missing client name or job title" - Required `[Client] Client` or `[Job] Name` fields are empty
+- "No manager found" - Could not find any manager in the system
+- "No staff member available to assign" - No STAFF users exist in the system
 - Invalid priority values will default to NORMAL
-- Invalid service types are skipped
-- Invalid dates are ignored (job created without due date)
+- Invalid status values will default to PENDING
 
 ## API Endpoint
 
