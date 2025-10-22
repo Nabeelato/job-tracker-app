@@ -265,8 +265,8 @@ export default function JobsPage() {
     }
   };
 
-  const fetchTimeline = async (jobId: string) => {
-    if (timeline[jobId]) return; // Already loaded
+  const fetchTimeline = async (jobId: string, forceRefresh: boolean = false) => {
+    if (timeline[jobId] && !forceRefresh) return; // Already loaded
 
     setLoadingTimeline({ ...loadingTimeline, [jobId]: true });
     try {
@@ -280,6 +280,10 @@ export default function JobsPage() {
     } finally {
       setLoadingTimeline({ ...loadingTimeline, [jobId]: false });
     }
+  };
+
+  const refreshTimeline = async (jobId: string) => {
+    await fetchTimeline(jobId, true);
   };
 
   const toggleExpand = async (jobId: string) => {
@@ -329,6 +333,7 @@ export default function JobsPage() {
 
       if (response.ok) {
         fetchJobs();
+        await refreshTimeline(jobId); // Refresh timeline immediately
         alert("Completion request submitted!");
       } else {
         const data = await response.json();
@@ -350,6 +355,7 @@ export default function JobsPage() {
 
       if (response.ok) {
         fetchJobs();
+        await refreshTimeline(jobId); // Refresh timeline immediately
         const message = action === "awaiting" 
           ? "Job marked as awaiting client reply" 
           : "Client reply received - job back to normal status";
@@ -590,8 +596,9 @@ export default function JobsPage() {
     if (!commentModal || !newComment.trim()) return;
 
     setSubmittingComment(true);
+    const jobId = commentModal.jobId;
     try {
-      const response = await fetch(`/api/jobs/${commentModal.jobId}/comments`, {
+      const response = await fetch(`/api/jobs/${jobId}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: newComment }),
@@ -600,7 +607,8 @@ export default function JobsPage() {
       if (response.ok) {
         setCommentModal(null);
         setNewComment("");
-        fetchJobs(); // Refresh to show new comment in timeline
+        fetchJobs(); // Refresh jobs list
+        await refreshTimeline(jobId); // Refresh timeline immediately
       } else {
         alert("Failed to add comment");
       }
