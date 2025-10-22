@@ -60,29 +60,20 @@ export async function POST(request: NextRequest) {
         }
 
         // Map status from Excel to our system
-        let mappedStatus = "PENDING";
+        let mappedStatus = "RFI_EMAIL_TO_CLIENT_SENT";
         const statusMap: Record<string, string> = {
-          "02. RFI / EMAIL TO CLIENT SENT": "PENDING",
-          "02. RFI": "PENDING",
-          "03. INFO SENT TO LAHORE / JOB STARTED": "IN_PROGRESS",
-          "03. INFO SENT TO LAHORE": "IN_PROGRESS",
-          "04. MISSING INFO / CHASE CLIENT": "ON_HOLD",
-          "04. MISSING INFO": "ON_HOLD",
-          "05. LAHORE TO PROCEED / CLIENT INFO COMPLETE": "AWAITING_APPROVAL",
-          "05. LAHORE TO PROCEED": "AWAITING_APPROVAL",
-          "06. FOR REVIEW WITH JACK": "PENDING_COMPLETION",
-          "06. FOR REVIEW": "PENDING_COMPLETION",
+          "02. RFI / EMAIL TO CLIENT SENT": "RFI_EMAIL_TO_CLIENT_SENT",
+          "02. RFI": "RFI_EMAIL_TO_CLIENT_SENT",
+          "03. INFO SENT TO LAHORE / JOB STARTED": "INFO_SENT_TO_LAHORE_JOB_STARTED",
+          "03. INFO SENT TO LAHORE": "INFO_SENT_TO_LAHORE_JOB_STARTED",
+          "04. MISSING INFO / CHASE CLIENT": "MISSING_INFO_CHASE_CLIENT",
+          "04. MISSING INFO": "MISSING_INFO_CHASE_CLIENT",
+          "05. LAHORE TO PROCEED / CLIENT INFO COMPLETE": "LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE",
+          "05. LAHORE TO PROCEED": "LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE",
+          "06. FOR REVIEW WITH JACK": "FOR_REVIEW_WITH_JACK",
+          "06. FOR REVIEW": "FOR_REVIEW_WITH_JACK",
           "07. COMPLETED": "COMPLETED",
           "COMPLETED": "COMPLETED",
-          "PENDING": "PENDING",
-          "IN PROGRESS": "IN_PROGRESS",
-          "IN_PROGRESS": "IN_PROGRESS",
-          "ON HOLD": "ON_HOLD",
-          "ON_HOLD": "ON_HOLD",
-          "AWAITING APPROVAL": "AWAITING_APPROVAL",
-          "AWAITING_APPROVAL": "AWAITING_APPROVAL",
-          "PENDING COMPLETION": "PENDING_COMPLETION",
-          "PENDING_COMPLETION": "PENDING_COMPLETION",
           "CANCELLED": "CANCELLED",
         };
         if (statusMap[status]) {
