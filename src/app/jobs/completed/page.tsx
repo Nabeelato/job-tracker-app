@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { formatDate, formatTimeAgo } from "@/lib/utils";
 
-type ServiceType = "BOOKKEEPING" | "VAT" | "AUDIT" | "FINANCIAL_STATEMENTS";
+type ServiceType = "BOOKKEEPING" | "VAT" | "CESSATION_OF_ACCOUNT" | "FINANCIAL_STATEMENTS";
 
 interface Job {
   id: string;
@@ -146,13 +146,13 @@ export default function CompletedJobsPage() {
     const styles = {
       BOOKKEEPING: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
       VAT: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-      AUDIT: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+      CESSATION_OF_ACCOUNT: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
       FINANCIAL_STATEMENTS: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
     };
     const labels = {
       BOOKKEEPING: "Bookkeeping",
       VAT: "VAT",
-      AUDIT: "Audit",
+      CESSATION_OF_ACCOUNT: "Cessation of Account",
       FINANCIAL_STATEMENTS: "Financial Statements",
     };
     return (
@@ -277,7 +277,7 @@ export default function CompletedJobsPage() {
                 <option value="ALL">All Service Types</option>
                 <option value="BOOKKEEPING">Bookkeeping</option>
                 <option value="VAT">VAT</option>
-                <option value="AUDIT">Audit</option>
+                <option value="CESSATION_OF_ACCOUNT">Cessation of Account</option>
                 <option value="FINANCIAL_STATEMENTS">Financial Statements</option>
               </select>
             </div>

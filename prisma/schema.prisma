@@ -236,7 +236,7 @@ enum Priority {
 enum ServiceType {
   BOOKKEEPING
   VAT
-  AUDIT
+  CESSATION_OF_ACCOUNT
   FINANCIAL_STATEMENTS
 }
 

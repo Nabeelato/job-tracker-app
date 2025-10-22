@@ -46,7 +46,7 @@ interface DashboardStats {
   serviceTypeDistribution: {
     BOOKKEEPING: number;
     VAT: number;
-    AUDIT: number;
+    CESSATION_OF_ACCOUNT: number;
     FINANCIAL_STATEMENTS: number;
   };
   topUsers: Array<{

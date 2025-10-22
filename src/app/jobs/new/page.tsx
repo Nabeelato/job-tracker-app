@@ -332,12 +332,12 @@ export default function NewJobPage() {
               <label className="flex items-center gap-3 p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50 dark:has-[:checked]:bg-purple-900/20">
                 <input
                   type="checkbox"
-                  checked={formData.serviceTypes.includes('AUDIT')}
-                  onChange={() => toggleServiceType('AUDIT')}
+                  checked={formData.serviceTypes.includes('CESSATION_OF_ACCOUNT')}
+                  onChange={() => toggleServiceType('CESSATION_OF_ACCOUNT')}
                   className="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
                 />
                 <CheckCircle className="w-5 h-5 text-purple-600" />
-                <span className="font-medium text-gray-900 dark:text-white">Audit</span>
+                <span className="font-medium text-gray-900 dark:text-white">Cessation of Account</span>
               </label>
 
               <label className="flex items-center gap-3 p-4 border-2 border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 dark:has-[:checked]:bg-orange-900/20">
