@@ -90,10 +90,13 @@ interface Job {
 
 interface TimelineEvent {
   id: string;
+  type?: string;
   action: string;
   oldValue: string | null;
   newValue: string | null;
+  content?: string;
   timestamp: string;
+  createdAt?: string;
   user: {
     name: string;
   };
@@ -1582,11 +1585,11 @@ export default function JobsPage() {
                                     </div>
                                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded p-1.5">
                                       <div className="text-xs text-gray-700 dark:text-gray-200 line-clamp-3">
-                                        {event.newValue}
+                                        {event.content || event.newValue || "No comment text"}
                                       </div>
                                     </div>
                                     <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
-                                      {formatTimeAgo(new Date(event.timestamp))}
+                                      {formatTimeAgo(new Date(event.timestamp || event.createdAt || Date.now()))}
                                     </div>
                                   </div>
                                 ) : (
