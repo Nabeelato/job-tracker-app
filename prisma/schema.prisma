@@ -73,6 +73,7 @@ model Job {
   priority                    Priority       @default(NORMAL)
   isUrgent                    Boolean        @default(false)
   isLate                      Boolean        @default(false)
+  awaitingClientReply         Boolean        @default(false)
   assignedToId                String
   assignedById                String
   managerId                   String?

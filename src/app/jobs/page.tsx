@@ -26,6 +26,8 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Mail,
+  MailCheck,
 } from "lucide-react";
 import { canCreateJobs } from "@/lib/permissions";
 import { formatTimeAgo } from "@/lib/utils";
@@ -48,6 +50,7 @@ interface Job {
   startedAt?: string | null;
   lastActivityAt?: string | null;
   reminderSnoozeUntil?: string | null;
+  awaitingClientReply?: boolean;
   assignedTo?: {
     id: string;
     name: string;
@@ -337,6 +340,30 @@ export default function JobsPage() {
     }
   };
 
+  const handleClientReply = async (jobId: string, action: "awaiting" | "received") => {
+    try {
+      const response = await fetch(`/api/jobs/${jobId}/client-reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+
+      if (response.ok) {
+        fetchJobs();
+        const message = action === "awaiting" 
+          ? "Job marked as awaiting client reply" 
+          : "Client reply received - job back to normal status";
+        alert(message);
+      } else {
+        const data = await response.json();
+        alert(data.error || "Failed to update client reply status");
+      }
+    } catch (error) {
+      console.error("Error updating client reply status:", error);
+      alert("Failed to update client reply status");
+    }
+  };
+
   const getStateLabel = (status: string) => {
     const stateMap: Record<string, string> = {
       PENDING: "02: RFI",
@@ -367,6 +394,11 @@ export default function JobsPage() {
     // Only show indicators for active jobs (not completed or cancelled)
     if (job.status === "COMPLETED" || job.status === "CANCELLED") {
       return "";
+    }
+
+    // Check for awaiting client reply first - overrides time-based colors
+    if (job.awaitingClientReply) {
+      return "bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:hover:bg-blue-950/30 border-l-4 border-l-blue-500";
     }
 
     const lastActivityDate = job.lastActivityAt ? new Date(job.lastActivityAt) : null;
@@ -1517,6 +1549,37 @@ export default function JobsPage() {
                                 Comment
                               </button>
 
+                              {/* Client Reply Status Buttons */}
+                              {job.status !== "COMPLETED" && job.status !== "CANCELLED" && (
+                                <>
+                                  {!job.awaitingClientReply ? (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleClientReply(job.id, "awaiting");
+                                      }}
+                                      className="px-3 py-1 bg-sky-600 text-white rounded text-sm hover:bg-sky-700 flex items-center gap-1"
+                                      title="Mark as awaiting client reply"
+                                    >
+                                      <Mail className="w-3.5 h-3.5" />
+                                      Awaiting Reply
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleClientReply(job.id, "received");
+                                      }}
+                                      className="px-3 py-1 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700 flex items-center gap-1"
+                                      title="Mark reply as received"
+                                    >
+                                      <MailCheck className="w-3.5 h-3.5" />
+                                      Reply Received
+                                    </button>
+                                  )}
+                                </>
+                              )}
+
                               <Link
                                 href={`/jobs/${job.id}`}
                                 onClick={(e) => e.stopPropagation()}
@@ -1553,6 +1616,8 @@ export default function JobsPage() {
                               event.action === "COMMENT_ADDED" ? "bg-blue-500" :
                               event.action === "STAFF_ASSIGNED" ? "bg-green-500" :
                               event.action === "COMPLETION_REQUESTED" ? "bg-purple-500" :
+                              event.action === "AWAITING_CLIENT_REPLY" ? "bg-sky-500" :
+                              event.action === "CLIENT_REPLY_RECEIVED" ? "bg-emerald-500" :
                               "bg-gray-500";
 
                             return (
@@ -1567,6 +1632,10 @@ export default function JobsPage() {
                                       <User className="w-3 h-3 text-white" />
                                     ) : event.action === "COMPLETION_REQUESTED" ? (
                                       <CheckCircle className="w-3 h-3 text-white" />
+                                    ) : event.action === "AWAITING_CLIENT_REPLY" ? (
+                                      <Mail className="w-3 h-3 text-white" />
+                                    ) : event.action === "CLIENT_REPLY_RECEIVED" ? (
+                                      <MailCheck className="w-3 h-3 text-white" />
                                     ) : (
                                       <Clock className="w-3 h-3 text-white" />
                                     )}
@@ -1601,6 +1670,8 @@ export default function JobsPage() {
                                       {event.action === "JOB_CREATED" && "created this job"}
                                       {event.action === "STAFF_ASSIGNED" && `assigned to ${event.newValue}`}
                                       {event.action === "COMPLETION_REQUESTED" && "requested completion"}
+                                      {event.action === "AWAITING_CLIENT_REPLY" && "marked as awaiting client reply"}
+                                      {event.action === "CLIENT_REPLY_RECEIVED" && "marked reply as received"}
                                       {event.action === "STATUS_CHANGED" && `changed status to ${event.newValue ? getStatusLabel(event.newValue) : "N/A"}`}
                                     </div>
                                     <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
@@ -1634,10 +1705,12 @@ export default function JobsPage() {
                 <div
                   key={job.id}
                   className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer border ${
-                    getActivityStatus(
-                      job.lastActivityAt ? new Date(job.lastActivityAt) : null,
-                      job.reminderSnoozeUntil ? new Date(job.reminderSnoozeUntil) : null
-                    ) === "critical" && job.status !== "COMPLETED" && job.status !== "CANCELLED"
+                    job.awaitingClientReply
+                      ? "border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/10"
+                      : getActivityStatus(
+                          job.lastActivityAt ? new Date(job.lastActivityAt) : null,
+                          job.reminderSnoozeUntil ? new Date(job.reminderSnoozeUntil) : null
+                        ) === "critical" && job.status !== "COMPLETED" && job.status !== "CANCELLED"
                       ? "border-l-4 border-l-red-500 bg-red-50/50 dark:bg-red-950/10"
                       : getActivityStatus(
                           job.lastActivityAt ? new Date(job.lastActivityAt) : null,
