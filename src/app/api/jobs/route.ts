@@ -283,7 +283,7 @@ export async function POST(request: NextRequest) {
         jobId: job.id,
         userId: managerId,
         action: "JOB_CREATED",
-        newValue: "PENDING",
+        newValue: "RFI_EMAIL_TO_CLIENT_SENT",
       },
     })
 

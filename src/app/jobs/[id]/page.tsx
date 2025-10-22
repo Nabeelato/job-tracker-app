@@ -23,8 +23,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { formatDate, formatTimeAgo } from "@/lib/utils";
-import { getStatusColor, getPriorityColor } from "@/lib/job-utils";
+import { getStatusColor as getStatusColorOld, getPriorityColor } from "@/lib/job-utils";
 import { getDueDateStatus } from "@/lib/date-utils";
+import { getAllStatuses, getStatusLabel as getStatusLabelUtil, getStatusColor as getStatusColorUtil } from "@/lib/status-utils";
 import {
   canEditJobDetails,
   canDeleteJobs,
@@ -92,20 +93,13 @@ interface Job {
   }>;
 }
 
-const STATUS_OPTIONS = [
-  { value: "PENDING", label: "02: RFI" },
-  { value: "IN_PROGRESS", label: "03: Info Sent to Lahore" },
-  { value: "ON_HOLD", label: "04: Missing Info / Chase Info" },
-  { value: "AWAITING_APPROVAL", label: "05: Info Completed" },
-  { value: "PENDING_COMPLETION", label: "06: Sent to Jack for Review" },
-  { value: "COMPLETED", label: "07: Completed" },
-];
+const STATUS_OPTIONS = getAllStatuses();
 
 // Helper function to get available status options based on user role
 const getAvailableStatusOptions = (userRole: string) => {
-  // STAFF cannot select COMPLETED or CANCELLED - they must request via PENDING_COMPLETION
+  // STAFF cannot select COMPLETED or CANCELLED - they must request completion
   if (userRole === "STAFF") {
-    return STATUS_OPTIONS.filter(opt => opt.value !== "COMPLETED");
+    return STATUS_OPTIONS.filter(opt => opt.value !== "COMPLETED" && opt.value !== "CANCELLED");
   }
   // SUPERVISOR, MANAGER, and ADMIN can select all statuses
   return STATUS_OPTIONS;
@@ -406,11 +400,11 @@ export default function JobDetailPage() {
                     {job.title}
                   </h1>
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                      job.status as any
+                    className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColorUtil(
+                      job.status
                     )}`}
                   >
-                    {job.status.replace("_", " ")}
+                    {getStatusLabelUtil(job.status)}
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-2">
@@ -558,10 +552,10 @@ export default function JobDetailPage() {
                             </span>
                             <span
                               className={`px-3 py-1 rounded-lg text-sm font-semibold shadow-sm ${
-                                update.newStatus ? getStatusColor(update.newStatus as any) : "bg-gray-100 text-gray-800"
+                                update.newStatus ? getStatusColorUtil(update.newStatus) : "bg-gray-100 text-gray-800"
                               }`}
                             >
-                              {update.newStatus ? getStatusLabel(update.newStatus) : "N/A"}
+                              {update.newStatus ? getStatusLabelUtil(update.newStatus) : "N/A"}
                             </span>
                           </div>
                         </div>

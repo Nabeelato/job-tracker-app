@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { canCreateJobs } from "@/lib/permissions";
 import { formatTimeAgo } from "@/lib/utils";
+import { getAllStatuses, getStatusLabel, getStatusColor } from "@/lib/status-utils";
 
 interface Job {
   id: string;
@@ -172,28 +173,7 @@ export default function JobsPage() {
     }
   };
 
-  const getStateLabel = (status: string) => {
-    const stateMap: Record<string, string> = {
-      PENDING: "02: RFI",
-      IN_PROGRESS: "03: Info Sent to Lahore",
-      ON_HOLD: "04: Missing Info/Chase Info",
-      AWAITING_APPROVAL: "05: Info Completed",
-      COMPLETED: "06: Sent to Jack for Review",
-    };
-    return stateMap[status] || status;
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      PENDING: "bg-yellow-100 text-yellow-800",
-      IN_PROGRESS: "bg-blue-100 text-blue-800",
-      ON_HOLD: "bg-orange-100 text-orange-800",
-      AWAITING_APPROVAL: "bg-purple-100 text-purple-800",
-      COMPLETED: "bg-green-100 text-green-800",
-      CANCELLED: "bg-gray-100 text-gray-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  };
+  // Use status utility functions (imported)
 
   if (loading) {
     return (
@@ -259,7 +239,7 @@ export default function JobsPage() {
                       {/* State */}
                       <div>
                         <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(job.status)}`}>
-                          {getStateLabel(job.status)}
+                          {getStatusLabel(job.status)}
                         </span>
                       </div>
 

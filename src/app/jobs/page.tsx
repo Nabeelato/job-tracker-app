@@ -35,6 +35,7 @@ import { formatTimeAgo } from "@/lib/utils";
 import { getAvailableMonths } from "@/lib/date-utils";
 import { getActivityStatus } from "@/lib/business-hours";
 import MonthlyJobsView from "@/components/monthly-jobs-view";
+import { getAllStatuses, getStatusLabel as getStatusLabelUtil, getStatusColor } from "@/lib/status-utils";
 
 type ServiceType = "BOOKKEEPING" | "VAT" | "CESSATION_OF_ACCOUNT" | "FINANCIAL_STATEMENTS";
 
@@ -106,19 +107,12 @@ interface TimelineEvent {
   };
 }
 
-// Status options for label mapping
-const STATUS_OPTIONS = [
-  { value: "PENDING", label: "02: RFI" },
-  { value: "IN_PROGRESS", label: "03: Info Sent to Lahore" },
-  { value: "ON_HOLD", label: "04: Missing Info / Chase Info" },
-  { value: "AWAITING_APPROVAL", label: "05: Info Completed" },
-  { value: "PENDING_COMPLETION", label: "06: Sent to Jack for Review" },
-  { value: "COMPLETED", label: "07: Completed" },
-];
+// Use the status utility for consistent status handling
+const STATUS_OPTIONS = getAllStatuses();
 
 // Helper function to get status label
 const getStatusLabel = (statusValue: string): string => {
-  return STATUS_OPTIONS.find(opt => opt.value === statusValue)?.label || statusValue.replace("_", " ");
+  return getStatusLabelUtil(statusValue);
 };
 
 // Helper function to get service type badge
@@ -376,29 +370,10 @@ export default function JobsPage() {
   };
 
   const getStateLabel = (status: string) => {
-    const stateMap: Record<string, string> = {
-      PENDING: "02: RFI",
-      IN_PROGRESS: "03: Info Sent to Lahore",
-      ON_HOLD: "04: Missing Info/Chase Info",
-      AWAITING_APPROVAL: "05: Info Completed",
-      PENDING_COMPLETION: "06: Sent to Jack for Review",
-      COMPLETED: "07: Completed",
-    };
-    return stateMap[status] || status;
+    return getStatusLabelUtil(status);
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      PENDING: "bg-yellow-100 text-yellow-800",
-      IN_PROGRESS: "bg-blue-100 text-blue-800",
-      ON_HOLD: "bg-orange-100 text-orange-800",
-      AWAITING_APPROVAL: "bg-purple-100 text-purple-800",
-      PENDING_COMPLETION: "bg-indigo-100 text-indigo-800",
-      COMPLETED: "bg-green-100 text-green-800",
-      CANCELLED: "bg-gray-100 text-gray-800",
-    };
-    return colors[status] || "bg-gray-100 text-gray-800";
-  };
+  // getStatusColor is already imported from utility
 
   // Get activity status indicator color for job row
   const getActivityRowColor = (job: Job): string => {
@@ -962,10 +937,11 @@ export default function JobsPage() {
                     className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="ALL">All Statuses</option>
-                    <option value="PENDING">02: RFI</option>
-                    <option value="IN_PROGRESS">03: Info Sent to Lahore</option>
-                    <option value="ON_HOLD">04: Missing Info/Chase Info</option>
-                    <option value="AWAITING_APPROVAL">05: Info Completed</option>
+                    {STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -1148,14 +1124,11 @@ export default function JobsPage() {
                     className="px-4 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select Status</option>
-                    <option value="PENDING">02: RFI</option>
-                    <option value="IN_PROGRESS">03: Info Sent to Lahore</option>
-                    <option value="ON_HOLD">04: Missing Info/Chase Info</option>
-                    <option value="AWAITING_APPROVAL">05: Info Completed</option>
-                    <option value="PENDING_COMPLETION">06: Sent to Jack for Review</option>
-                    {session && session.user.role !== "STAFF" && (
-                      <option value="COMPLETED">07: Completed</option>
-                    )}
+                    {STATUS_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 )}
 
@@ -1197,13 +1170,7 @@ export default function JobsPage() {
                 {selectedJobs.size} job{selectedJobs.size !== 1 ? "s" : ""}?
                 {bulkAction === "status" && bulkActionValue && (
                   <span className="block mt-2 font-medium">
-                    New status: {bulkActionValue === "PENDING" ? "02: RFI" :
-                                 bulkActionValue === "IN_PROGRESS" ? "03: Info Sent to Lahore" :
-                                 bulkActionValue === "ON_HOLD" ? "04: Missing Info/Chase Info" :
-                                 bulkActionValue === "AWAITING_APPROVAL" ? "05: Info Completed" :
-                                 bulkActionValue === "PENDING_COMPLETION" ? "06: Sent to Jack for Review" :
-                                 bulkActionValue === "COMPLETED" ? "07: Completed" :
-                                 bulkActionValue}
+                    New status: {getStatusLabelUtil(bulkActionValue)}
                   </span>
                 )}
                 {bulkAction === "priority" && bulkActionValue && (
@@ -2109,8 +2076,8 @@ export default function JobsPage() {
                 <li><strong>[Job] Job No.</strong> (optional) - Job ID (e.g., JOB-0001). If empty, will auto-generate.</li>
                 <li><strong>[Client] Client</strong> (required) - Name of the client</li>
                 <li><strong>[Job] Name</strong> (required) - Title of the job</li>
-                <li><strong>Priority</strong> (optional) - LOW, NORMAL, HIGH, or URGENT (default: NORMAL)</li>
-                <li><strong>[State] State</strong> (optional) - PENDING, IN PROGRESS, ON HOLD, COMPLETED, etc. (default: PENDING)</li>
+                <li><strong>Priority</strong> (optional) - Any priority text (imported as-is, e.g., LOW, HIGH, URGENT)</li>
+                <li><strong>[State] State</strong> (optional) - Status like "02. RFI", "03. Info sent to Lahore", etc. (default: 02. RFI)</li>
                 <li><strong>[Job] Manager</strong> (optional) - Name of the manager (will match by name)</li>
               </ul>
               <p className="text-xs text-blue-700 dark:text-blue-400 mt-2 italic">

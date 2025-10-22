@@ -18,6 +18,7 @@ import {
   XCircle,
   Calendar,
 } from "lucide-react";
+import { getStatusLabel } from "@/lib/status-utils";
 
 interface DashboardStats {
   summary: {
@@ -30,10 +31,11 @@ interface DashboardStats {
     avgComments: string;
   };
   statusDistribution: {
-    PENDING: number;
-    IN_PROGRESS: number;
-    ON_HOLD: number;
-    AWAITING_APPROVAL: number;
+    RFI_EMAIL_TO_CLIENT_SENT: number;
+    INFO_SENT_TO_LAHORE_JOB_STARTED: number;
+    MISSING_INFO_CHASE_CLIENT: number;
+    LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE: number;
+    FOR_REVIEW_WITH_JACK: number;
     COMPLETED: number;
     CANCELLED: number;
   };
@@ -199,10 +201,11 @@ export default function DashboardPage() {
                 );
                 const percentage = total > 0 ? (count / total) * 100 : 0;
                 const colors: { [key: string]: string } = {
-                  PENDING: "bg-yellow-500",
-                  IN_PROGRESS: "bg-blue-500",
-                  ON_HOLD: "bg-orange-500",
-                  AWAITING_APPROVAL: "bg-purple-500",
+                  RFI_EMAIL_TO_CLIENT_SENT: "bg-yellow-500",
+                  INFO_SENT_TO_LAHORE_JOB_STARTED: "bg-blue-500",
+                  MISSING_INFO_CHASE_CLIENT: "bg-orange-500",
+                  LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE: "bg-purple-500",
+                  FOR_REVIEW_WITH_JACK: "bg-indigo-500",
                   COMPLETED: "bg-green-500",
                   CANCELLED: "bg-red-500",
                 };
@@ -211,13 +214,7 @@ export default function DashboardPage() {
                   <div key={status}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
-                        {status === "IN_PROGRESS"
-                          ? "In Progress"
-                          : status === "ON_HOLD"
-                          ? "On Hold"
-                          : status === "AWAITING_APPROVAL"
-                          ? "Awaiting Approval"
-                          : status.charAt(0) + status.slice(1).toLowerCase()}
+                        {getStatusLabel(status)}
                       </span>
                       <span className="text-sm font-semibold text-gray-900 dark:text-white">
                         {count}

@@ -15,7 +15,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { groupByMonth, getMonthLabelFromKey } from "@/lib/date-utils";
-import { formatTimeAgo } from "@/lib/utils";
+import { formatDate, formatTimeAgo } from "@/lib/utils";
+import { getAllStatuses, getStatusLabel, getStatusColor } from "@/lib/status-utils";
 import { getActivityStatus } from "@/lib/business-hours";
 
 type ServiceType = "BOOKKEEPING" | "VAT" | "CESSATION_OF_ACCOUNT" | "FINANCIAL_STATEMENTS";
@@ -68,19 +69,7 @@ interface MonthlyJobsViewProps {
   onUserFilter?: (userId: string) => void;
 }
 
-// Helper function to get status label
-const getStatusLabel = (statusValue: string): string => {
-  const STATUS_OPTIONS = [
-    { value: "PENDING", label: "02: RFI" },
-    { value: "IN_PROGRESS", label: "03: Info Sent to Lahore" },
-    { value: "ON_HOLD", label: "04: Missing Info / Chase Info" },
-    { value: "AWAITING_APPROVAL", label: "05: Info Completed" },
-    { value: "PENDING_COMPLETION", label: "06: Sent to Jack for Review" },
-    { value: "COMPLETED", label: "07: Completed" },
-    { value: "CANCELLED", label: "Cancelled" },
-  ];
-  return STATUS_OPTIONS.find(opt => opt.value === statusValue)?.label || statusValue.replace("_", " ");
-};
+// Use the status utility for consistent handling
 
 // Helper function to get service type badge
 const getServiceTypeBadge = (serviceType: ServiceType) => {
@@ -116,19 +105,6 @@ const getPriorityBadge = (priority: string) => {
       {priority}
     </span>
   );
-};
-
-const getStatusColor = (status: string) => {
-  const colors: Record<string, string> = {
-    PENDING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-    IN_PROGRESS: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-    ON_HOLD: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
-    AWAITING_APPROVAL: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
-    PENDING_COMPLETION: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
-    COMPLETED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-    CANCELLED: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300",
-  };
-  return colors[status] || "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300";
 };
 
 // Get activity status indicator color for job row

@@ -59,7 +59,7 @@ export async function POST(
         userId: dbUser.id,
         action: "COMPLETION_REQUESTED",
         oldValue: job.status,
-        newValue: "AWAITING_APPROVAL",
+        newValue: "LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE",
       },
     })
 
@@ -76,11 +76,11 @@ export async function POST(
       })
     }
 
-    // Update job status to AWAITING_APPROVAL
+    // Update job status to LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE
     const updatedJob = await prisma.job.update({
       where: { id: jobId },
       data: {
-        status: "AWAITING_APPROVAL",
+        status: "LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE",
       },
     })
 

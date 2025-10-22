@@ -48,10 +48,11 @@ export async function GET(req: NextRequest) {
 
     // Calculate status distribution
     const statusDistribution = {
-      PENDING: allJobs.filter((j: any) => j.status === "PENDING").length,
-      IN_PROGRESS: allJobs.filter((j: any) => j.status === "IN_PROGRESS").length,
-      ON_HOLD: allJobs.filter((j: any) => j.status === "ON_HOLD").length,
-      AWAITING_APPROVAL: allJobs.filter((j: any) => j.status === "AWAITING_APPROVAL").length,
+      RFI_EMAIL_TO_CLIENT_SENT: allJobs.filter((j: any) => j.status === "RFI_EMAIL_TO_CLIENT_SENT").length,
+      INFO_SENT_TO_LAHORE_JOB_STARTED: allJobs.filter((j: any) => j.status === "INFO_SENT_TO_LAHORE_JOB_STARTED").length,
+      MISSING_INFO_CHASE_CLIENT: allJobs.filter((j: any) => j.status === "MISSING_INFO_CHASE_CLIENT").length,
+      LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE: allJobs.filter((j: any) => j.status === "LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE").length,
+      FOR_REVIEW_WITH_JACK: allJobs.filter((j: any) => j.status === "FOR_REVIEW_WITH_JACK").length,
       COMPLETED: completedJobs,
       CANCELLED: cancelledJobs,
     };
