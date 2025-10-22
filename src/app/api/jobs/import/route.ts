@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
         const jobNo = row["[Job] Job No."] || row["Job No."] || row["Job No"] || "";
         const clientName = row["[Client] Client"] || row["Client"] || "";
         const title = row["[Job] Name"] || row["Name"] || row["Job Name"] || "";
-        const priority = row["Priority"] || "";
-        const status = (row["[State] State"] || row["State"] || "02. RFI / Email to client sent").toString().toUpperCase();
+        const priority = row["Priority"] || null;
+        const statusRaw = (row["[State] State"] || row["State"] || "02. RFI").toString();
         const managerName = row["[Job] Manager"] || row["Manager"] || "";
 
         if (!clientName || !title) {
@@ -59,25 +59,25 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        // Map status from Excel to our system
+        // Map status from Excel to our system - more flexible matching
         let mappedStatus = "RFI_EMAIL_TO_CLIENT_SENT";
-        const statusMap: Record<string, string> = {
-          "02. RFI / EMAIL TO CLIENT SENT": "RFI_EMAIL_TO_CLIENT_SENT",
-          "02. RFI": "RFI_EMAIL_TO_CLIENT_SENT",
-          "03. INFO SENT TO LAHORE / JOB STARTED": "INFO_SENT_TO_LAHORE_JOB_STARTED",
-          "03. INFO SENT TO LAHORE": "INFO_SENT_TO_LAHORE_JOB_STARTED",
-          "04. MISSING INFO / CHASE CLIENT": "MISSING_INFO_CHASE_CLIENT",
-          "04. MISSING INFO": "MISSING_INFO_CHASE_CLIENT",
-          "05. LAHORE TO PROCEED / CLIENT INFO COMPLETE": "LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE",
-          "05. LAHORE TO PROCEED": "LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE",
-          "06. FOR REVIEW WITH JACK": "FOR_REVIEW_WITH_JACK",
-          "06. FOR REVIEW": "FOR_REVIEW_WITH_JACK",
-          "07. COMPLETED": "COMPLETED",
-          "COMPLETED": "COMPLETED",
-          "CANCELLED": "CANCELLED",
-        };
-        if (statusMap[status]) {
-          mappedStatus = statusMap[status];
+        const statusUpper = statusRaw.toUpperCase().trim();
+        
+        // Match by number prefix or keyword
+        if (statusUpper.startsWith("02") || statusUpper.includes("RFI")) {
+          mappedStatus = "RFI_EMAIL_TO_CLIENT_SENT";
+        } else if (statusUpper.startsWith("03") || statusUpper.includes("INFO SENT TO LAHORE") || statusUpper.includes("JOB STARTED")) {
+          mappedStatus = "INFO_SENT_TO_LAHORE_JOB_STARTED";
+        } else if (statusUpper.startsWith("04") || statusUpper.includes("MISSING INFO") || statusUpper.includes("CHASE")) {
+          mappedStatus = "MISSING_INFO_CHASE_CLIENT";
+        } else if (statusUpper.startsWith("05") || statusUpper.includes("LAHORE TO PROCEED") || statusUpper.includes("CLIENT INFO COMPLETE")) {
+          mappedStatus = "LAHORE_TO_PROCEED_CLIENT_INFO_COMPLETE";
+        } else if (statusUpper.startsWith("06") || statusUpper.includes("REVIEW") || statusUpper.includes("JACK")) {
+          mappedStatus = "FOR_REVIEW_WITH_JACK";
+        } else if (statusUpper.startsWith("07") || statusUpper.includes("COMPLETED")) {
+          mappedStatus = "COMPLETED";
+        } else if (statusUpper.includes("CANCEL")) {
+          mappedStatus = "CANCELLED";
         }
 
         // Find manager by name

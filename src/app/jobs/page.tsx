@@ -414,10 +414,6 @@ export default function JobsPage() {
       job.manager?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.supervisor?.name.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesServiceType =
-      serviceTypeFilter === "ALL" ||
-      job.serviceTypes?.includes(serviceTypeFilter as ServiceType);
-
     const matchesPriority =
       priorityFilter === "ALL" || job.priority === priorityFilter;
 
@@ -483,7 +479,7 @@ export default function JobsPage() {
       return monthKey === monthFilter;
     })();
 
-    return matchesSearch && matchesServiceType && matchesPriority && matchesStatus && 
+    return matchesSearch && matchesPriority && matchesStatus && 
            matchesUser && matchesDepartment && matchesOverdue && matchesDateRange && matchesMonth;
   });
 
@@ -824,7 +820,6 @@ export default function JobsPage() {
               {(() => {
                 const activeFiltersCount = [
                   searchTerm,
-                  serviceTypeFilter !== "ALL" ? 1 : 0,
                   priorityFilter !== "ALL" ? 1 : 0,
                   statusFilter !== "ALL" ? 1 : 0,
                   userFilter !== "ALL" ? 1 : 0,
@@ -842,12 +837,11 @@ export default function JobsPage() {
               })()}
             </div>
             <div className="flex items-center gap-1.5">
-              {(searchTerm || serviceTypeFilter !== "ALL" || priorityFilter !== "ALL" || statusFilter !== "ALL" || userFilter !== "ALL" || departmentFilter !== "ALL" || dateRangeFilter !== "ALL" || monthFilter !== "ALL" || overdueFilter) && (
+              {(searchTerm || priorityFilter !== "ALL" || statusFilter !== "ALL" || userFilter !== "ALL" || departmentFilter !== "ALL" || dateRangeFilter !== "ALL" || monthFilter !== "ALL" || overdueFilter) && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setSearchTerm("");
-                    setServiceTypeFilter("ALL");
                     setPriorityFilter("ALL");
                     setStatusFilter("ALL");
                     setUserFilter("ALL");
@@ -888,24 +882,6 @@ export default function JobsPage() {
                       className="w-full pl-7 pr-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                </div>
-
-                {/* Service Type Filter */}
-                <div>
-                  <label className="block text-[10px] font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Service Type
-                  </label>
-                  <select
-                    value={serviceTypeFilter}
-                    onChange={(e) => setServiceTypeFilter(e.target.value)}
-                    className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-xs text-gray-900 dark:text-white focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="ALL">All Service Types</option>
-                    <option value="BOOKKEEPING">Bookkeeping</option>
-                    <option value="VAT">VAT</option>
-                    <option value="CESSATION_OF_ACCOUNT">Cessation of Account</option>
-                    <option value="FINANCIAL_STATEMENTS">Financial Statements</option>
-                  </select>
                 </div>
 
                 {/* Priority Filter */}
@@ -1812,16 +1788,8 @@ export default function JobsPage() {
                       {job.title}
                     </p>
 
-                    {/* Service Types & Priority - Inline */}
+                    {/* Priority Only */}
                     <div className="flex items-center gap-1.5 mb-2 flex-wrap">
-                      {job.serviceTypes && job.serviceTypes.length > 0 ? (
-                        job.serviceTypes.slice(0, 2).map((type) => (
-                          <span key={type}>{getServiceTypeBadge(type)}</span>
-                        ))
-                      ) : null}
-                      {job.serviceTypes && job.serviceTypes.length > 2 && (
-                        <span className="text-[10px] text-gray-500">+{job.serviceTypes.length - 2}</span>
-                      )}
                       {getPriorityBadge(job.priority)}
                     </div>
 
