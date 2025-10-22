@@ -162,7 +162,7 @@ async function main() {
       status: 'MISSING_INFO_CHASE_CLIENT',
       priority: 'HIGH',
       isUrgent: false,
-      serviceTypes: ['AUDIT', 'FINANCIAL_STATEMENTS'],
+      serviceTypes: ['CESSATION_OF_ACCOUNT', 'FINANCIAL_STATEMENTS'],
       assignedToId: staff2.id,
       assignedById: bookkeepingManager.id,
       departmentId: auditDept.id,
