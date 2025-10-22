@@ -70,7 +70,7 @@ model Job {
   title                       String
   description                 String?
   status                      JobStatus      @default(RFI_EMAIL_TO_CLIENT_SENT)
-  priority                    Priority       @default(NORMAL)
+  priority                    String?
   isUrgent                    Boolean        @default(false)
   isLate                      Boolean        @default(false)
   awaitingClientReply         Boolean        @default(false)

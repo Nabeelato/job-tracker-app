@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
         const jobNo = row["[Job] Job No."] || row["Job No."] || row["Job No"] || "";
         const clientName = row["[Client] Client"] || row["Client"] || "";
         const title = row["[Job] Name"] || row["Name"] || row["Job Name"] || "";
-        const priority = (row["Priority"] || "NORMAL").toString().toUpperCase();
-        const status = (row["[State] State"] || row["State"] || "PENDING").toString().toUpperCase();
+        const priority = row["Priority"] || "";
+        const status = (row["[State] State"] || row["State"] || "02. RFI / Email to client sent").toString().toUpperCase();
         const managerName = row["[Job] Manager"] || row["Manager"] || "";
 
         if (!clientName || !title) {
@@ -78,12 +78,6 @@ export async function POST(request: NextRequest) {
         };
         if (statusMap[status]) {
           mappedStatus = statusMap[status];
-        }
-
-        // Map priority
-        let mappedPriority = "NORMAL";
-        if (["LOW", "NORMAL", "HIGH", "URGENT"].includes(priority)) {
-          mappedPriority = priority;
         }
 
         // Find manager by name
@@ -151,7 +145,7 @@ export async function POST(request: NextRequest) {
             title,
             description: null,
             status: mappedStatus as any,
-            priority: mappedPriority as any,
+            priority: priority || null,
             serviceTypes: [],
             assignedToId: assignedUser.id,
             assignedById: session.user.id,
