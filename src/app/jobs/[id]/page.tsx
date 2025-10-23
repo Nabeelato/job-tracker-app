@@ -21,6 +21,8 @@ import {
   Trash2,
   AlertCircle,
   XCircle,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { formatDate, formatTimeAgo } from "@/lib/utils";
 import { getStatusColor as getStatusColorOld, getPriorityColor } from "@/lib/job-utils";
@@ -122,6 +124,11 @@ export default function JobDetailPage() {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [deletingJob, setDeletingJob] = useState(false);
   
+  // Related jobs state
+  const [relatedJobsCount, setRelatedJobsCount] = useState(0);
+  const [relatedJobs, setRelatedJobs] = useState<Array<{ id: string; jobId: string; title: string; manager: { name: string } | null }>>([]);
+  const [showRelatedJobs, setShowRelatedJobs] = useState(false);
+  
   // Custom confirmation modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
@@ -158,6 +165,21 @@ export default function JobDetailPage() {
       }
       const data = await response.json();
       setJob(data);
+      
+      // Fetch related jobs with the same client name
+      if (data.clientName) {
+        const relatedResponse = await fetch(`/api/jobs?clientName=${encodeURIComponent(data.clientName)}`);
+        if (relatedResponse.ok) {
+          const allJobs = await relatedResponse.json();
+          // Filter out the current job and only keep jobs with matching client name
+          const related = allJobs.jobs.filter((j: any) => 
+            j.id !== data.id && 
+            j.clientName.toLowerCase() === data.clientName.toLowerCase()
+          );
+          setRelatedJobsCount(related.length);
+          setRelatedJobs(related);
+        }
+      }
     } catch (error: any) {
       setError(error.message || "An error occurred");
     } finally {
@@ -493,6 +515,63 @@ export default function JobDetailPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Related Jobs Banner */}
+        {relatedJobsCount > 0 && (
+          <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setShowRelatedJobs(!showRelatedJobs)}
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <span className="font-medium text-blue-900 dark:text-blue-100">
+                  {relatedJobsCount} other {relatedJobsCount === 1 ? 'job' : 'jobs'} found for {job.clientName}
+                </span>
+              </div>
+              {showRelatedJobs ? (
+                <ChevronUp className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              )}
+            </button>
+            
+            {showRelatedJobs && (
+              <div className="px-4 pb-4 space-y-2">
+                {relatedJobs.map((relatedJob) => (
+                  <div
+                    key={relatedJob.id}
+                    className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-200 dark:border-blue-700 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-mono text-sm text-gray-600 dark:text-gray-400">
+                            #{relatedJob.jobId}
+                          </span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {relatedJob.title}
+                          </span>
+                        </div>
+                        {relatedJob.manager && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Manager: {relatedJob.manager.name}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => router.push(`/jobs/${relatedJob.id}`)}
+                        className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                      >
+                        View
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
