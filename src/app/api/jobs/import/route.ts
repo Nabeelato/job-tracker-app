@@ -136,8 +136,20 @@ export async function POST(request: NextRequest) {
           finalJobId = `JOB-${String(lastJobNumber + 1).padStart(4, "0")}`;
         }
 
+        // Check if job with this jobId already exists
+        const existingJob = await prisma.job.findUnique({
+          where: { jobId: finalJobId }
+        });
+
+        if (existingJob) {
+          // Skip duplicate jobs
+          results.failed++;
+          results.errors.push(`Row ${i + 2}: Job ID "${finalJobId}" already exists (skipped)`);
+          continue;
+        }
+
         // Create the job
-        await prisma.job.create({
+        const newJob = await prisma.job.create({
           data: {
             id: crypto.randomUUID(),
             jobId: finalJobId,
@@ -162,7 +174,7 @@ export async function POST(request: NextRequest) {
         await prisma.statusUpdate.create({
           data: {
             id: crypto.randomUUID(),
-            jobId: finalJobId,
+            jobId: newJob.id,
             userId: session.user.id,
             action: "JOB_CREATED",
             timestamp: new Date(),
