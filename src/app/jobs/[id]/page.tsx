@@ -166,21 +166,16 @@ export default function JobDetailPage() {
       const data = await response.json();
       setJob(data);
       
-      // Fetch related jobs with the same client name
+      // Fetch related jobs with the same client name using dedicated endpoint
       if (data.clientName) {
         try {
-          const relatedResponse = await fetch(`/api/jobs?clientName=${encodeURIComponent(data.clientName)}`);
+          const relatedResponse = await fetch(
+            `/api/jobs/related?clientName=${encodeURIComponent(data.clientName)}&excludeJobId=${data.id}`
+          );
           if (relatedResponse.ok) {
-            const allJobs = await relatedResponse.json();
-            // Check if response has jobs array or if it's the array itself
-            const jobsArray = Array.isArray(allJobs) ? allJobs : (allJobs.jobs || []);
-            // Filter out the current job and only keep jobs with matching client name
-            const related = jobsArray.filter((j: any) => 
-              j.id !== data.id && 
-              j.clientName?.toLowerCase() === data.clientName.toLowerCase()
-            );
-            setRelatedJobsCount(related.length);
-            setRelatedJobs(related);
+            const relatedJobs = await relatedResponse.json();
+            setRelatedJobsCount(relatedJobs.length);
+            setRelatedJobs(relatedJobs);
           }
         } catch (relatedError) {
           // Silently fail for related jobs - don't break the main page
