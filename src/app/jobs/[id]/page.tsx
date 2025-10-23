@@ -122,6 +122,10 @@ export default function JobDetailPage() {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [deletingJob, setDeletingJob] = useState(false);
   
+  // Related jobs state
+  const [relatedJobs, setRelatedJobs] = useState<Array<{ id: string; jobId: string; title: string; manager: { name: string } | null }>>([]);
+  const [showRelatedJobs, setShowRelatedJobs] = useState(true);
+  
   // Custom confirmation modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
@@ -158,10 +162,36 @@ export default function JobDetailPage() {
       }
       const data = await response.json();
       setJob(data);
+      
+      // Fetch related jobs (same client)
+      if (data.clientName) {
+        fetchRelatedJobs(data.clientName, data.id);
+      }
     } catch (error: any) {
       setError(error.message || "An error occurred");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRelatedJobs = async (clientName: string, currentJobId: string) => {
+    try {
+      const response = await fetch(`/api/jobs?clientName=${encodeURIComponent(clientName)}`);
+      if (response.ok) {
+        const allJobs = await response.json();
+        // Filter out current job and get only relevant fields
+        const related = allJobs
+          .filter((j: any) => j.id !== currentJobId)
+          .map((j: any) => ({
+            id: j.id,
+            jobId: j.jobId,
+            title: j.title,
+            manager: j.manager,
+          }));
+        setRelatedJobs(related);
+      }
+    } catch (error) {
+      console.error("Error fetching related jobs:", error);
     }
   };
 
@@ -491,6 +521,56 @@ export default function JobDetailPage() {
           </div>
         </div>
       </header>
+
+      {/* Related Jobs Banner */}
+      {relatedJobs.length > 0 && showRelatedJobs && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-b border-blue-200 dark:border-blue-800">
+          <div className="container mx-auto px-4 py-4 max-w-6xl">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Related Jobs Found
+                  </h3>
+                </div>
+                <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                  <span className="font-medium">{job.clientName}</span> has {relatedJobs.length} other job{relatedJobs.length > 1 ? 's' : ''}:
+                </p>
+                <div className="space-y-2">
+                  {relatedJobs.map((relatedJob) => (
+                    <Link
+                      key={relatedJob.id}
+                      href={`/jobs/${relatedJob.id}`}
+                      className="flex items-center gap-3 p-2 bg-white dark:bg-gray-800 rounded-lg hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700"
+                    >
+                      <span className="text-xs font-mono text-gray-500 dark:text-gray-400 min-w-[80px]">
+                        {relatedJob.jobId}
+                      </span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white flex-1">
+                        {relatedJob.title}
+                      </span>
+                      {relatedJob.manager && (
+                        <span className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          {relatedJob.manager.name}
+                        </span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <button
+                onClick={() => setShowRelatedJobs(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
+                title="Dismiss"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="grid lg:grid-cols-3 gap-8">

@@ -29,6 +29,9 @@ import {
   Mail,
   MailCheck,
   UserPlus,
+  Edit,
+  X,
+  Save,
 } from "lucide-react";
 import { canCreateJobs } from "@/lib/permissions";
 import { formatTimeAgo } from "@/lib/utils";
@@ -205,6 +208,22 @@ export default function JobsPage() {
   const [reassignModal, setReassignModal] = useState<{ jobId: string; currentAssignee: string } | null>(null);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
   const [reassigning, setReassigning] = useState(false);
+
+  // Edit job modal
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [editFormData, setEditFormData] = useState({ clientName: "", title: "", priority: "", status: "" });
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  useEffect(() => {
+    if (editingJob) {
+      setEditFormData({
+        clientName: editingJob.clientName,
+        title: editingJob.title,
+        priority: editingJob.priority || "",
+        status: editingJob.status,
+      });
+    }
+  }, [editingJob]);
 
   useEffect(() => {
     if (session) {
@@ -647,6 +666,31 @@ export default function JobsPage() {
       console.error("Error reassigning job:", error);
     } finally {
       setReassigning(false);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingJob) return;
+    
+    setSavingEdit(true);
+    try {
+      const response = await fetch(`/api/jobs/${editingJob.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editFormData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update job");
+      }
+
+      await fetchJobs();
+      setEditingJob(null);
+    } catch (error) {
+      console.error("Error updating job:", error);
+      alert("Failed to update job");
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -1602,6 +1646,21 @@ export default function JobsPage() {
                                 </>
                               )}
 
+                              {/* Edit Button */}
+                              {(session?.user.role === "ADMIN" || session?.user.role === "MANAGER") && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingJob(job);
+                                  }}
+                                  className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1"
+                                  title="Quick edit job"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                  Edit
+                                </button>
+                              )}
+
                               <Link
                                 href={`/jobs/${job.id}`}
                                 onClick={(e) => e.stopPropagation()}
@@ -2139,6 +2198,108 @@ export default function JobsPage() {
                   setSelectedStaffId("");
                 }}
                 disabled={reassigning}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Edit Modal */}
+      {editingJob && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Quick Edit Job
+              </h3>
+              <button
+                onClick={() => setEditingJob(null)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Client Name
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.clientName}
+                  onChange={(e) => setEditFormData({ ...editFormData, clientName: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Job Title
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.title}
+                  onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Priority
+                </label>
+                <input
+                  type="text"
+                  value={editFormData.priority}
+                  onChange={(e) => setEditFormData({ ...editFormData, priority: e.target.value })}
+                  placeholder="e.g., HIGH, URGENT, LOW"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Status
+                </label>
+                <select
+                  value={editFormData.status}
+                  onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                  className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {STATUS_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-2 mt-6">
+              <button
+                onClick={handleSaveEdit}
+                disabled={savingEdit}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+              >
+                {savingEdit ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => setEditingJob(null)}
+                disabled={savingEdit}
                 className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 Cancel
