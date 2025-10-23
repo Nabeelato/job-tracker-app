@@ -1251,9 +1251,6 @@ export default function JobsPage() {
                       {sortBy !== "title" && <ArrowUpDown className="w-3 h-3 opacity-30" />}
                     </div>
                   </th>
-                  <th className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
-                    Service
-                  </th>
                   <th 
                     className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                     onClick={() => handleSort("priority")}
@@ -1373,20 +1370,6 @@ export default function JobsPage() {
                       </td>
                       <td className="px-2 py-1.5 text-xs font-medium text-gray-900 dark:text-white max-w-[150px] truncate">
                         {job.title}
-                      </td>
-                      <td className="px-2 py-1.5">
-                        <div className="flex flex-wrap gap-0.5">
-                          {job.serviceTypes && job.serviceTypes.length > 0 ? (
-                            job.serviceTypes.slice(0, 2).map((type) => (
-                              <span key={type}>{getServiceTypeBadge(type)}</span>
-                            ))
-                          ) : (
-                            <span className="text-xs text-gray-400">—</span>
-                          )}
-                          {job.serviceTypes && job.serviceTypes.length > 2 && (
-                            <span className="text-xs text-gray-500">+{job.serviceTypes.length - 2}</span>
-                          )}
-                        </div>
                       </td>
                       <td className="px-2 py-1.5">
                         {getPriorityBadge(job.priority)}
