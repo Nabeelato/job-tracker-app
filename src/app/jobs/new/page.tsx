@@ -20,6 +20,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { canCreateJobs } from "@/lib/permissions";
+import { CustomFieldsForm } from "@/components/custom-fields-form";
 
 interface User {
   id: string;
@@ -34,6 +35,7 @@ export default function NewJobPage() {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState("");
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({});
 
   const [formData, setFormData] = useState({
     jobId: "",
@@ -84,7 +86,8 @@ export default function NewJobPage() {
     try {
       // Prepare payload based on user role
       const payload: any = {
-        ...formData
+        ...formData,
+        customFields: customFieldValues, // Include custom field values
       };
 
       // If user is ADMIN, they can specify managerId
@@ -357,6 +360,12 @@ export default function NewJobPage() {
               </p>
             )}
           </div>
+
+          {/* Custom Fields */}
+          <CustomFieldsForm
+            values={customFieldValues}
+            onChange={setCustomFieldValues}
+          />
 
           {/* Actions */}
           <div className="flex justify-end gap-4 pt-4">
