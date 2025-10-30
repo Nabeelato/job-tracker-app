@@ -86,3 +86,45 @@ export interface Notification {
   isRead: boolean
   createdAt: Date
 }
+
+export type FieldType = 
+  | "TEXT"
+  | "NUMBER"
+  | "DATE"
+  | "DATETIME"
+  | "SELECT"
+  | "BOOLEAN"
+  | "EMAIL"
+  | "PHONE"
+  | "URL"
+  | "TEXTAREA"
+
+export interface CustomField {
+  id: string
+  fieldKey: string
+  fieldLabel: string
+  fieldType: FieldType
+  options: string[]
+  isRequired: boolean
+  isActive: boolean
+  sortOrder: number
+  category?: string
+  description?: string
+  defaultValue?: string
+  createdAt: Date
+  updatedAt: Date
+  createdById: string
+  createdBy?: User
+}
+
+export interface ColumnLabel {
+  id: string
+  columnKey: string
+  customLabel: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface CustomFieldValue {
+  [fieldKey: string]: any
+}

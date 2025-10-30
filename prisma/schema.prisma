@@ -85,6 +85,7 @@ model Job {
   dueDate                     DateTime?
   completedAt                 DateTime?
   tags                        String[]
+  customFields                Json?          @default("{}")
   createdAt                   DateTime       @default(now())
   updatedAt                   DateTime
   lastActivityAt              DateTime       @default(now())
@@ -187,9 +188,43 @@ model User {
   StatusUpdate                             StatusUpdate[]
   Task                                     Task[]         @relation("UserTasks")
   Department_User_departmentIdToDepartment Department?    @relation("User_departmentIdToDepartment", fields: [departmentId], references: [id])
+  CustomField                              CustomField[]  @relation("CustomFieldCreatedBy")
 
   @@index([departmentId])
   @@index([email])
+}
+
+model CustomField {
+  id          String    @id @default(cuid())
+  fieldKey    String    @unique
+  fieldLabel  String
+  fieldType   FieldType
+  options     String[]  @default([])
+  isRequired  Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  category    String?
+  description String?
+  defaultValue String?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdById String
+  createdBy   User      @relation("CustomFieldCreatedBy", fields: [createdById], references: [id])
+  
+  @@index([isActive])
+  @@index([sortOrder])
+}
+
+model ColumnLabel {
+  id          String   @id @default(cuid())
+  columnKey   String   @unique
+  customLabel String
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([columnKey])
 }
 
 enum ActivityType {
@@ -252,4 +287,17 @@ enum UserRole {
   MANAGER
   SUPERVISOR
   STAFF
+}
+
+enum FieldType {
+  TEXT
+  NUMBER
+  DATE
+  DATETIME
+  SELECT
+  BOOLEAN
+  EMAIL
+  PHONE
+  URL
+  TEXTAREA
 }
