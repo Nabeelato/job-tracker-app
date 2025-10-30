@@ -28,6 +28,7 @@ import {
   ArrowDown,
   Mail,
   MailCheck,
+  Check,
   UserPlus,
   Edit,
   X,
@@ -225,6 +226,11 @@ export default function JobsPage() {
   // Custom fields
   const [customFields, setCustomFields] = useState<any[]>([]);
   const [loadingCustomFields, setLoadingCustomFields] = useState(true);
+  
+  // Inline editing for custom fields
+  const [editingCell, setEditingCell] = useState<{ jobId: string; fieldKey: string } | null>(null);
+  const [editingValue, setEditingValue] = useState<any>("");
+  const [savingCell, setSavingCell] = useState(false);
 
   useEffect(() => {
     if (editingJob) {
@@ -292,6 +298,53 @@ export default function JobsPage() {
     } catch (error) {
       console.error("Error fetching staff:", error);
     }
+  };
+  
+  // Inline custom field editing
+  const handleCellClick = (job: Job, fieldKey: string) => {
+    setEditingCell({ jobId: job.id, fieldKey });
+    setEditingValue(job.customFields?.[fieldKey] || "");
+  };
+  
+  const handleCellSave = async (job: Job, fieldKey: string) => {
+    if (savingCell) return;
+    
+    setSavingCell(true);
+    try {
+      const updatedCustomFields = {
+        ...(job.customFields || {}),
+        [fieldKey]: editingValue
+      };
+      
+      const response = await fetch(`/api/jobs/${job.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customFields: updatedCustomFields }),
+      });
+      
+      if (response.ok) {
+        // Update local state
+        setJobs(jobs.map(j => 
+          j.id === job.id 
+            ? { ...j, customFields: updatedCustomFields }
+            : j
+        ));
+        setEditingCell(null);
+        setEditingValue("");
+      } else {
+        alert("Failed to update custom field");
+      }
+    } catch (error) {
+      console.error("Error updating custom field:", error);
+      alert("Failed to update custom field");
+    } finally {
+      setSavingCell(false);
+    }
+  };
+  
+  const handleCellCancel = () => {
+    setEditingCell(null);
+    setEditingValue("");
   };
 
   const fetchAllUsers = async () => {
@@ -1535,21 +1588,135 @@ export default function JobsPage() {
                         {job._count.comments > 0 ? job._count.comments : <span className="text-gray-400">—</span>}
                       </td>
                       {/* Dynamic Custom Field Cells */}
-                      {customFields.map((field) => (
-                        <td key={field.id} className="px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300">
-                          {job.customFields && job.customFields[field.fieldKey] ? (
-                            field.fieldType === 'DATE' ? (
-                              new Date(job.customFields[field.fieldKey]).toLocaleDateString()
-                            ) : field.fieldType === 'BOOLEAN' ? (
-                              job.customFields[field.fieldKey] ? '✓' : '✗'
+                      {customFields.map((field) => {
+                        const isEditing = editingCell?.jobId === job.id && editingCell?.fieldKey === field.fieldKey;
+                        const value = job.customFields?.[field.fieldKey];
+                        
+                        return (
+                          <td 
+                            key={field.id} 
+                            className="px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300"
+                            onClick={() => !isEditing && handleCellClick(job, field.fieldKey)}
+                          >
+                            {isEditing ? (
+                              <div className="flex items-center gap-1">
+                                {field.fieldType === 'DATE' ? (
+                                  <input
+                                    type="date"
+                                    value={editingValue}
+                                    onChange={(e) => setEditingValue(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleCellSave(job, field.fieldKey);
+                                      if (e.key === 'Escape') handleCellCancel();
+                                    }}
+                                    className="w-full px-1 py-0.5 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                    autoFocus
+                                  />
+                                ) : field.fieldType === 'DATETIME' ? (
+                                  <input
+                                    type="datetime-local"
+                                    value={editingValue}
+                                    onChange={(e) => setEditingValue(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleCellSave(job, field.fieldKey);
+                                      if (e.key === 'Escape') handleCellCancel();
+                                    }}
+                                    className="w-full px-1 py-0.5 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                    autoFocus
+                                  />
+                                ) : field.fieldType === 'NUMBER' ? (
+                                  <input
+                                    type="number"
+                                    value={editingValue}
+                                    onChange={(e) => setEditingValue(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleCellSave(job, field.fieldKey);
+                                      if (e.key === 'Escape') handleCellCancel();
+                                    }}
+                                    className="w-full px-1 py-0.5 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                    autoFocus
+                                  />
+                                ) : field.fieldType === 'SELECT' ? (
+                                  <select
+                                    value={editingValue}
+                                    onChange={(e) => setEditingValue(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleCellSave(job, field.fieldKey);
+                                      if (e.key === 'Escape') handleCellCancel();
+                                    }}
+                                    className="w-full px-1 py-0.5 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                    autoFocus
+                                  >
+                                    <option value="">Select...</option>
+                                    {field.options?.map((opt: string) => (
+                                      <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                  </select>
+                                ) : field.fieldType === 'BOOLEAN' ? (
+                                  <select
+                                    value={editingValue?.toString()}
+                                    onChange={(e) => setEditingValue(e.target.value === 'true')}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleCellSave(job, field.fieldKey);
+                                      if (e.key === 'Escape') handleCellCancel();
+                                    }}
+                                    className="w-full px-1 py-0.5 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                    autoFocus
+                                  >
+                                    <option value="">Select...</option>
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                  </select>
+                                ) : (
+                                  <input
+                                    type="text"
+                                    value={editingValue}
+                                    onChange={(e) => setEditingValue(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') handleCellSave(job, field.fieldKey);
+                                      if (e.key === 'Escape') handleCellCancel();
+                                    }}
+                                    className="w-full px-1 py-0.5 text-xs border rounded dark:bg-gray-700 dark:border-gray-600"
+                                    autoFocus
+                                  />
+                                )}
+                                <button
+                                  onClick={() => handleCellSave(job, field.fieldKey)}
+                                  disabled={savingCell}
+                                  className="p-0.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded"
+                                  title="Save"
+                                >
+                                  <Check className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={handleCellCancel}
+                                  disabled={savingCell}
+                                  className="p-0.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                                  title="Cancel"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
                             ) : (
-                              String(job.customFields[field.fieldKey])
-                            )
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </td>
-                      ))}
+                              <div className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 px-1 py-0.5 rounded group">
+                                <span className="group-hover:opacity-70">
+                                  {value ? (
+                                    field.fieldType === 'DATE' ? (
+                                      new Date(value).toLocaleDateString()
+                                    ) : field.fieldType === 'BOOLEAN' ? (
+                                      value ? '✓' : '✗'
+                                    ) : (
+                                      String(value)
+                                    )
+                                  ) : (
+                                    <span className="text-gray-400">—</span>
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
                       <td className="px-2 py-1.5 text-xs text-center">
                         {expandedJobId === job.id ? (
                           <ChevronUp className="w-4 h-4 text-gray-400 inline" />
