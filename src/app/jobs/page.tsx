@@ -216,6 +216,10 @@ export default function JobsPage() {
   const [editFormData, setEditFormData] = useState({ clientName: "", title: "", priority: "", status: "" });
   const [savingEdit, setSavingEdit] = useState(false);
 
+  // Custom fields
+  const [customFields, setCustomFields] = useState<any[]>([]);
+  const [loadingCustomFields, setLoadingCustomFields] = useState(true);
+
   useEffect(() => {
     if (editingJob) {
       setEditFormData({
@@ -232,11 +236,26 @@ export default function JobsPage() {
       fetchJobs();
       fetchAllUsers(); // NEW: Fetch all users for filter
       fetchDepartments(); // NEW: Fetch departments
+      fetchCustomFields(); // Fetch custom fields for table columns
       if (session.user.role === "SUPERVISOR") {
         fetchStaffUsers();
       }
     }
   }, [session]);
+
+  const fetchCustomFields = async () => {
+    try {
+      const response = await fetch("/api/custom-fields?active=true");
+      if (response.ok) {
+        const data = await response.json();
+        setCustomFields(data);
+      }
+    } catch (error) {
+      console.error("Error fetching custom fields:", error);
+    } finally {
+      setLoadingCustomFields(false);
+    }
+  };
 
   const fetchJobs = async () => {
     try {
@@ -1384,6 +1403,15 @@ export default function JobsPage() {
                   <th className="px-2 py-1.5 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
                     <MessageSquare className="w-3.5 h-3.5 inline" />
                   </th>
+                  {/* Dynamic Custom Field Headers */}
+                  {customFields.map((field) => (
+                    <th 
+                      key={field.id}
+                      className="px-2 py-1.5 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase"
+                    >
+                      {field.fieldLabel}
+                    </th>
+                  ))}
                   <th className="px-2 py-1.5 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">
                     Actions
                   </th>
@@ -1499,6 +1527,22 @@ export default function JobsPage() {
                       <td className="px-2 py-1.5 text-xs text-center text-gray-600 dark:text-gray-400">
                         {job._count.comments > 0 ? job._count.comments : <span className="text-gray-400">—</span>}
                       </td>
+                      {/* Dynamic Custom Field Cells */}
+                      {customFields.map((field) => (
+                        <td key={field.id} className="px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300">
+                          {job.customFields && job.customFields[field.fieldKey] ? (
+                            field.fieldType === 'DATE' ? (
+                              new Date(job.customFields[field.fieldKey]).toLocaleDateString()
+                            ) : field.fieldType === 'BOOLEAN' ? (
+                              job.customFields[field.fieldKey] ? '✓' : '✗'
+                            ) : (
+                              String(job.customFields[field.fieldKey])
+                            )
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+                      ))}
                       <td className="px-2 py-1.5 text-xs text-center">
                         {expandedJobId === job.id ? (
                           <ChevronUp className="w-4 h-4 text-gray-400 inline" />
@@ -1511,7 +1555,7 @@ export default function JobsPage() {
                     {/* Expanded Content Row - Timeline & Actions */}
                     {expandedJobId === job.id && (
                       <tr>
-                        <td colSpan={14} className="px-0 py-0">
+                        <td colSpan={14 + customFields.length} className="px-0 py-0">
                           <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-750">
                             {/* Actions */}
                             <div className="mb-3 flex gap-2 flex-wrap">
