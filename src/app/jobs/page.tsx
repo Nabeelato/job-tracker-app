@@ -1480,10 +1480,9 @@ export default function JobsPage() {
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700 text-sm">
                 {sortedJobs.map((job) => (
                   <Fragment key={job.id}>
-                    {/* Main Row - Clickable */}
+                    {/* Main Row */}
                     <tr
-                      onClick={() => toggleExpand(job.id)}
-                      className={`cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-750 ${getActivityRowColor(job)}`}
+                      className={`transition-colors hover:bg-gray-50 dark:hover:bg-gray-750 ${getActivityRowColor(job)}`}
                     >
                       <td 
                         className="px-2 py-1.5 text-center"
@@ -1596,7 +1595,10 @@ export default function JobsPage() {
                           <td 
                             key={field.id} 
                             className="px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300"
-                            onClick={() => !isEditing && handleCellClick(job, field.fieldKey)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!isEditing) handleCellClick(job, field.fieldKey);
+                            }}
                           >
                             {isEditing ? (
                               <div className="flex items-center gap-1">
@@ -1717,7 +1719,11 @@ export default function JobsPage() {
                           </td>
                         );
                       })}
-                      <td className="px-2 py-1.5 text-xs text-center">
+                      <td 
+                        className="px-2 py-1.5 text-xs text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => toggleExpand(job.id)}
+                        title="Click to view details"
+                      >
                         {expandedJobId === job.id ? (
                           <ChevronUp className="w-4 h-4 text-gray-400 inline" />
                         ) : (
