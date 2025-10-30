@@ -213,7 +213,13 @@ export default function JobsPage() {
 
   // Edit job modal
   const [editingJob, setEditingJob] = useState<Job | null>(null);
-  const [editFormData, setEditFormData] = useState({ clientName: "", title: "", priority: "", status: "" });
+  const [editFormData, setEditFormData] = useState({ 
+    clientName: "", 
+    title: "", 
+    priority: "", 
+    status: "",
+    customFields: {} as Record<string, any>
+  });
   const [savingEdit, setSavingEdit] = useState(false);
 
   // Custom fields
@@ -227,6 +233,7 @@ export default function JobsPage() {
         title: editingJob.title,
         priority: editingJob.priority || "",
         status: editingJob.status,
+        customFields: editingJob.customFields || {},
       });
     }
   }, [editingJob]);
@@ -2333,6 +2340,111 @@ export default function JobsPage() {
                 </select>
               </div>
             </div>
+
+            {/* Custom Fields */}
+            {customFields.length > 0 && (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+                  Custom Fields
+                </h4>
+                <div className="space-y-3">
+                  {customFields.map((field) => (
+                    <div key={field.id}>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        {field.fieldLabel}
+                        {field.isRequired && <span className="text-red-500 ml-1">*</span>}
+                      </label>
+                      {field.fieldType === 'TEXT' || field.fieldType === 'EMAIL' || field.fieldType === 'PHONE' || field.fieldType === 'URL' ? (
+                        <input
+                          type={field.fieldType === 'EMAIL' ? 'email' : field.fieldType === 'PHONE' ? 'tel' : field.fieldType === 'URL' ? 'url' : 'text'}
+                          value={editFormData.customFields[field.fieldKey] || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            customFields: { ...editFormData.customFields, [field.fieldKey]: e.target.value }
+                          })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required={field.isRequired}
+                        />
+                      ) : field.fieldType === 'TEXTAREA' ? (
+                        <textarea
+                          value={editFormData.customFields[field.fieldKey] || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            customFields: { ...editFormData.customFields, [field.fieldKey]: e.target.value }
+                          })}
+                          rows={3}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required={field.isRequired}
+                        />
+                      ) : field.fieldType === 'NUMBER' ? (
+                        <input
+                          type="number"
+                          value={editFormData.customFields[field.fieldKey] || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            customFields: { ...editFormData.customFields, [field.fieldKey]: parseFloat(e.target.value) || '' }
+                          })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required={field.isRequired}
+                        />
+                      ) : field.fieldType === 'DATE' ? (
+                        <input
+                          type="date"
+                          value={editFormData.customFields[field.fieldKey] || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            customFields: { ...editFormData.customFields, [field.fieldKey]: e.target.value }
+                          })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required={field.isRequired}
+                        />
+                      ) : field.fieldType === 'DATETIME' ? (
+                        <input
+                          type="datetime-local"
+                          value={editFormData.customFields[field.fieldKey] || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            customFields: { ...editFormData.customFields, [field.fieldKey]: e.target.value }
+                          })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required={field.isRequired}
+                        />
+                      ) : field.fieldType === 'SELECT' ? (
+                        <select
+                          value={editFormData.customFields[field.fieldKey] || ''}
+                          onChange={(e) => setEditFormData({
+                            ...editFormData,
+                            customFields: { ...editFormData.customFields, [field.fieldKey]: e.target.value }
+                          })}
+                          className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          required={field.isRequired}
+                        >
+                          <option value="">Select...</option>
+                          {field.options.map((option: string) => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      ) : field.fieldType === 'BOOLEAN' ? (
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={editFormData.customFields[field.fieldKey] || false}
+                            onChange={(e) => setEditFormData({
+                              ...editFormData,
+                              customFields: { ...editFormData.customFields, [field.fieldKey]: e.target.checked }
+                            })}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                        </div>
+                      ) : null}
+                      {field.description && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{field.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-2 mt-6">
               <button
