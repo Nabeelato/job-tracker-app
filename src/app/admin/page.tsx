@@ -17,6 +17,8 @@ import {
   CheckCircle,
   XCircle,
   Building2,
+  Settings,
+  Tag,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -293,6 +295,60 @@ export default function AdminPanelPage() {
               <Plus className="w-5 h-5" />
               Create User
             </button>
+          </div>
+        </div>
+
+        {/* Quick Access Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Link
+            href="/admin/custom-fields"
+            className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition-all hover:scale-105"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <Settings className="w-8 h-8" />
+              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">New</span>
+            </div>
+            <h3 className="text-lg font-bold mb-1">Custom Fields</h3>
+            <p className="text-sm text-blue-100">
+              Add dynamic columns to job tracking
+            </p>
+          </Link>
+
+          <Link
+            href="/admin/column-labels"
+            className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition-all hover:scale-105"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <Tag className="w-8 h-8" />
+              <span className="text-xs bg-white/20 px-2 py-1 rounded-full">New</span>
+            </div>
+            <h3 className="text-lg font-bold mb-1">Column Labels</h3>
+            <p className="text-sm text-purple-100">
+              Customize column names and labels
+            </p>
+          </Link>
+
+          <Link
+            href="/admin/departments"
+            className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg shadow-lg p-6 text-white hover:shadow-xl transition-all hover:scale-105"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <Building2 className="w-8 h-8" />
+            </div>
+            <h3 className="text-lg font-bold mb-1">Departments</h3>
+            <p className="text-sm text-indigo-100">
+              Manage teams and departments
+            </p>
+          </Link>
+
+          <div className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg shadow-lg p-6 text-white">
+            <div className="flex items-center justify-between mb-3">
+              <Users className="w-8 h-8" />
+            </div>
+            <h3 className="text-lg font-bold mb-1">User Management</h3>
+            <p className="text-sm text-gray-300">
+              View and manage all users below
+            </p>
           </div>
         </div>
 
