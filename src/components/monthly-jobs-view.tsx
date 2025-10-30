@@ -18,6 +18,7 @@ import { groupByMonth, getMonthLabelFromKey } from "@/lib/date-utils";
 import { formatDate, formatTimeAgo } from "@/lib/utils";
 import { getAllStatuses, getStatusLabel, getStatusColor } from "@/lib/status-utils";
 import { getActivityStatus } from "@/lib/business-hours";
+import { CustomFieldsDisplay } from "@/components/custom-fields-display";
 
 type ServiceType = "BOOKKEEPING" | "VAT" | "CESSATION_OF_ACCOUNT" | "FINANCIAL_STATEMENTS";
 
@@ -34,6 +35,7 @@ interface Job {
   startedAt?: string | null;
   lastActivityAt?: string | null;
   reminderSnoozeUntil?: string | null;
+  customFields?: any;
   assignedTo?: {
     id: string;
     name: string;
@@ -408,6 +410,17 @@ export default function MonthlyJobsView({
                                     View Full Details
                                   </Link>
                                 </div>
+
+                                {/* Custom Fields */}
+                                {job.customFields && (
+                                  <div className="mb-3">
+                                    <CustomFieldsDisplay 
+                                      values={job.customFields} 
+                                      compact={false}
+                                      className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700"
+                                    />
+                                  </div>
+                                )}
 
                                 {/* Timeline */}
                                 <div className="bg-gradient-to-br from-slate-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg p-5 border border-gray-200 dark:border-gray-700">

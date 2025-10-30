@@ -39,6 +39,7 @@ import { getAvailableMonths } from "@/lib/date-utils";
 import { getActivityStatus } from "@/lib/business-hours";
 import MonthlyJobsView from "@/components/monthly-jobs-view";
 import { getAllStatuses, getStatusLabel as getStatusLabelUtil, getStatusColor } from "@/lib/status-utils";
+import { CustomFieldsDisplay } from "@/components/custom-fields-display";
 
 type ServiceType = "BOOKKEEPING" | "VAT" | "CESSATION_OF_ACCOUNT" | "FINANCIAL_STATEMENTS";
 
@@ -56,6 +57,7 @@ interface Job {
   lastActivityAt?: string | null;
   reminderSnoozeUntil?: string | null;
   awaitingClientReply?: boolean;
+  customFields?: any;
   assignedTo?: {
     id: string;
     name: string;
@@ -1850,6 +1852,15 @@ export default function JobsPage() {
                         </div>
                       )}
                     </div>
+
+                    {/* Custom Fields */}
+                    {job.customFields && (
+                      <CustomFieldsDisplay 
+                        values={job.customFields} 
+                        compact={true}
+                        className="mb-2 pb-2 border-b border-gray-100 dark:border-gray-700"
+                      />
+                    )}
 
                     {/* Due Date - Compact */}
                     {job.dueDate && (

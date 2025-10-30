@@ -17,6 +17,7 @@ import {
 import { formatDate, formatTimeAgo } from "@/lib/utils";
 import { getStatusColor } from "@/lib/job-utils";
 import { groupByMonth, getMonthLabelFromKey, getAvailableMonths } from "@/lib/date-utils";
+import { CustomFieldsDisplay } from "@/components/custom-fields-display";
 
 interface Job {
   id: string;
@@ -28,6 +29,7 @@ interface Job {
   completedAt: string | null;
   createdAt: string;
   startedAt?: string | null;
+  customFields?: any;
   assignedTo?: {
     id: string;
     name: string;
@@ -354,6 +356,15 @@ export default function ArchivePage() {
                               </div>
                             )}
                           </div>
+
+                          {/* Custom Fields */}
+                          {job.customFields && (
+                            <CustomFieldsDisplay 
+                              values={job.customFields} 
+                              compact={true}
+                              className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+                            />
+                          )}
                         </Link>
                       ))}
                     </div>
@@ -425,6 +436,15 @@ export default function ArchivePage() {
                     </div>
                   )}
                 </div>
+
+                {/* Custom Fields */}
+                {job.customFields && (
+                  <CustomFieldsDisplay 
+                    values={job.customFields} 
+                    compact={true}
+                    className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+                  />
+                )}
               </Link>
             ))}
           </div>
